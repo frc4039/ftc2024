@@ -12,8 +12,8 @@ public class Teleop24 extends OpMode {
     private DcMotor frontRight;
     private DcMotor rearLeft;
     private DcMotor rearRight;
-    
-    // I- don't think this does anything????
+
+    // Define the Motor Maximum Speed
     private final double maxSpeed = 0.625;
     
 
@@ -62,11 +62,13 @@ public class Teleop24 extends OpMode {
         double turn = (gamepad1.right_stick_x);
 
         // This is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
+        // Square the values and keep the sign to give exponentially more weight to the larger values.
         drive = drive * drive * Math.signum(drive);
         strafe = strafe * strafe * Math.signum(strafe);
         turn = turn * turn * Math.signum(turn);
 
         // Allows for multiple functions to happen at once (eg. drive & strafe, turn & drive, etc)
+        // Combine the weighted values from above as a ratio of maxSpeed
         double denominator = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1);
         frontLeft.setPower(maxSpeed*(drive - strafe + turn)/denominator);
         frontRight.setPower(maxSpeed*(drive - strafe - turn)/denominator);
