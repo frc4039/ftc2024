@@ -53,7 +53,7 @@ import java.util.List;
 //@Disabled
 public class ConceptTensorFlowObjectDetection extends LinearOpMode {
 
-    private static final boolean USE_WEBCAM = false;  // true for webcam, false for phone camera
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     // TFOD_MODEL_ASSET points to a model file stored in the project Asset location,
     // this is only used for Android Studio when using models in Assets.
