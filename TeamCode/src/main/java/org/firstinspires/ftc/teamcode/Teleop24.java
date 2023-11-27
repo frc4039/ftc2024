@@ -48,7 +48,6 @@ public class Teleop24 extends OpMode {
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
 
-        elevatorPivot.setDirection(DcMotor.Direction.REVERSE);
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
@@ -119,26 +118,27 @@ public class Teleop24 extends OpMode {
         if (pivotReset) {
             //idk, get the position of the elevator pivot to move towards 0 somehow??????
             elevatorPivot.setTargetPosition(pivotHome);
-            elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            runtime.reset();
             elevatorPivot.setPower(elevatorPivotSpeed);
             telemetry.addData("Running pivotReset: ", elevatorPivot.getCurrentPosition());
             telemetry.addData("Running to:", pivotHome);
+            runtime.reset();
         } else if (pivotUp) {
             elevatorPivot.setTargetPosition(pivotTarget);
-            elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            runtime.reset();
             elevatorPivot.setPower(elevatorPivotSpeed);
-            //elevatorPivot.getCurrentPosition() = 130
+            //elevatorPivot.getCurrentPosition() = 130;
 
-            //while(elevatorPivot.isBusy()) { //used to have while(opmodeIsActive()) idk if that breaks anything
-            telemetry.addData("Running pivotUp: ", elevatorPivot.getCurrentPosition());
-            telemetry.addData("running to:", pivotTarget);
-            telemetry.update();
-            //}
+            while(elevatorPivot.isBusy()) { //used to have while(opmodeIsActive()) idk if that breaks anything
+                telemetry.addData("Running pivotUp: ", elevatorPivot.getCurrentPosition());
+                telemetry.addData("running to:", pivotTarget);
+                telemetry.update();
+                runtime.reset();
+            }
         }
 
-        elevatorPivot.setPower(0);
+        elevatorPivot.setDirection(DcMotor.Direction.REVERSE);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        //elevatorPivot.setPower(0);
 
         if (closeGrip) {
             gripperLeft.setPosition(0);
