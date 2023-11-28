@@ -21,15 +21,18 @@ public class Teleop24 extends OpMode {
     private Servo gripperRight;
 
     private int pivotHome = 0;
-    private int pivotTarget = 130;
+    private int pivotTarget = -95;
 
 
     // I- don't think this does anything????
     private final double maxSpeed = 0.625;
-    private final double elevatorPivotSpeed = 0.2;
+    private final double elevatorPivotUpSpeed = 1;  // Full power to lift
+    private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
+    private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
+
     private final double gripperSpeed = 0.3;
 
-    private ElapsedTime runtime = new ElapsedTime();
+//    private ElapsedTime runtime = new ElapsedTime();
 
     public void init(){
 
@@ -47,7 +50,7 @@ public class Teleop24 extends OpMode {
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
-
+        elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
@@ -57,11 +60,16 @@ public class Teleop24 extends OpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
         telemetry.addData("Status", "Robot Code Initialized");
+    }
+
+    // Function to move pivot arm to desired angle at set speed.
+    private void moveToPos(double pow, int pos) {
+        elevatorPivot.setPower(pow);
+        elevatorPivot.setTargetPosition(pos);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     @Override
@@ -115,6 +123,25 @@ public class Teleop24 extends OpMode {
         rearLeft.setPower(maxSpeed*(drive + strafe + turn)/denominator);
         rearRight.setPower(maxSpeed*(drive + strafe - turn)/denominator);
 
+        // Move up to scoring position
+        if(pivotUp) {
+            moveToPos(elevatorPivotUpSpeed, pivotTarget);
+        }
+
+        // Move down to intake position
+        if(pivotReset ) {
+            moveToPos(elevatorPivotDownSpeed,pivotHome + 20);
+            moveToPos(elevatorPivotCrawlSpeed,pivotHome);
+        }
+
+        // Debugging to tell when the moveToPos function is complete
+        // May need to add a timeout to the up function as it appears to take a while to stop.
+        if (elevatorPivot.isBusy()) {
+            telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
+        }
+
+ /*   Replace this code below to use the Function moveToPos above
+
         if (pivotReset) {
             //idk, get the position of the elevator pivot to move towards 0 somehow??????
             elevatorPivot.setTargetPosition(pivotHome);
@@ -139,7 +166,7 @@ public class Teleop24 extends OpMode {
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         //elevatorPivot.setPower(0);
-
+*/
         if (closeGrip) {
             gripperLeft.setPosition(0);
             gripperRight.setPosition(0);
