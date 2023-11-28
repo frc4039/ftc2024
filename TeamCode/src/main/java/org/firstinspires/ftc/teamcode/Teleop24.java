@@ -123,9 +123,11 @@ public class Teleop24 extends OpMode {
         rearLeft.setPower(maxSpeed*(drive + strafe + turn)/denominator);
         rearRight.setPower(maxSpeed*(drive + strafe - turn)/denominator);
 
+        //PIVOT CONTROLS
         // Move up to scoring position
-        if(pivotUp) {
+        if(pivotUp ) {
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
+            // May need to add a timeout here as it appears to take a while to stop.
         }
 
         // Move down to intake position
@@ -135,38 +137,10 @@ public class Teleop24 extends OpMode {
         }
 
         // Debugging to tell when the moveToPos function is complete
-        // May need to add a timeout to the up function as it appears to take a while to stop.
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
         }
 
- /*   Replace this code below to use the Function moveToPos above
-
-        if (pivotReset) {
-            //idk, get the position of the elevator pivot to move towards 0 somehow??????
-            elevatorPivot.setTargetPosition(pivotHome);
-            elevatorPivot.setPower(elevatorPivotSpeed);
-            telemetry.addData("Running pivotReset: ", elevatorPivot.getCurrentPosition());
-            telemetry.addData("Running to:", pivotHome);
-            runtime.reset();
-        } else if (pivotUp) {
-            elevatorPivot.setTargetPosition(pivotTarget);
-            elevatorPivot.setPower(elevatorPivotSpeed);
-            //elevatorPivot.getCurrentPosition() = 130;
-
-            while(elevatorPivot.isBusy()) { //used to have while(opmodeIsActive()) idk if that breaks anything
-                telemetry.addData("Running pivotUp: ", elevatorPivot.getCurrentPosition());
-                telemetry.addData("running to:", pivotTarget);
-                telemetry.update();
-                runtime.reset();
-            }
-        }
-
-        elevatorPivot.setDirection(DcMotor.Direction.REVERSE);
-        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        //elevatorPivot.setPower(0);
-*/
         if (closeGrip) {
             gripperLeft.setPosition(0);
             gripperRight.setPosition(0);
