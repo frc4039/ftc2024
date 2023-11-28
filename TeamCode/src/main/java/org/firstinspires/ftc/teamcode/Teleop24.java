@@ -142,8 +142,8 @@ public class Teleop24 extends OpMode {
         }
 
         if (closeGrip) {
-            gripperLeft.setPosition(0);
-            gripperRight.setPosition(0);
+            gripperLeft.setPosition(-0.025);
+            gripperRight.setPosition(-0.025);
             telemetry.addData("grip closing", gripperRight.getPosition());
             telemetry.update();
         } else if (openGrip){
