@@ -30,10 +30,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital????????
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -75,6 +78,13 @@ public class AutoByEncoder extends LinearOpMode {
     private DcMotor rearRight = null;
 
     private Servo purplePixelGripper = null;
+
+    private DigitalChannel leftA = null;
+    private DigitalChannel leftB = null;
+    private DigitalChannel rightA = null;
+    private DigitalChannel rightB = null;
+    private DigitalChannel strafeA = null;
+    private DigitalChannel strafeB = null;
     private ElapsedTime     runtime = new ElapsedTime();
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
@@ -95,7 +105,30 @@ public class AutoByEncoder extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        leftA = hardwareMap.get(DigitalChannel.class, "leftA");
+        leftB = hardwareMap.get(DigitalChannel.class, "leftB");
+        rightA = hardwareMap.get(DigitalChannel.class, "rightA");
+        rightB = hardwareMap.get(DigitalChannel.class, "rightB");
+        strafeA = hardwareMap.get(DigitalChannel.class, "strafeA");
+        strafeB = hardwareMap.get(DigitalChannel.class, "strafeB");
 
+
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
+        rearRight = hardwareMap.get(DcMotor.class, "rearRight");
+
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        rearLeft.setDirection(DcMotor.Direction.REVERSE);
+        rearRight.setDirection(DcMotor.Direction.FORWARD);
+
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        /**
+ *
         // Initialize the drive system variables.
         leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
@@ -117,7 +150,7 @@ public class AutoByEncoder extends LinearOpMode {
                 leftDrive.getCurrentPosition(),
                 rightDrive.getCurrentPosition());
         telemetry.update();
-
+**/
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
@@ -128,9 +161,9 @@ public class AutoByEncoder extends LinearOpMode {
          encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
          encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
          **/
-        //strafe attempt
-        encoderDrive(DRIVE_SPEED, 10, -10, 5);
-        encoderDrive(DRIVE_SPEED, -10, 10, 5);
+        //Step 1: Check which position the can is in.
+        encoderStrafe(DRIVE_SPEED, 48.0, 5);
+
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -146,40 +179,6 @@ public class AutoByEncoder extends LinearOpMode {
      *  3) Driver stops the OpMode running.
      */
 
-    public void encoderDriveStrafe(double speed,
-                                   int frontInches,
-                                   int rearInches,
-                                   double timeoutS) {
-
-        if (opModeIsActive()) {
-            //might work??? idk for strafe -_-
-            encoderDriveTimesaver(frontLeft, frontInches, speed);
-            encoderDriveTimesaver(frontRight, frontInches, speed);
-            encoderDriveTimesaver(rearLeft, rearInches, speed);
-            encoderDriveTimesaver(rearRight, rearInches, speed);
-            // you can probably reset runtime here
-            runtime.reset();
-
-            while(opModeIsActive() &&
-                    (runtime.seconds() < timeoutS) &&
-                    (frontLeft.isBusy() && frontRight.isBusy()) &&
-                    (rearLeft.isBusy() && rearRight.isBusy())) {
-                telemetry.addData("Running to: Insert Cash or Select Payment Type", 1); //replace later
-                telemetry.update();
-            }
-
-            stopMotors();
-
-        }
-    }
-
-    public void encoderDriveTimesaver(DcMotor motor, int inches, double speed){
-        motor.setTargetPosition(motor.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH));
-        //reset runtime here?
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motor.setPower(Math.abs(speed));
-    }
-
     public void openPurplePixelGripper(Servo purplePixelGripper, int position){
         purplePixelGripper.setPosition(position);
     }
@@ -190,7 +189,64 @@ public class AutoByEncoder extends LinearOpMode {
         rearLeft.setPower(0);
         rearRight.setPower(0);
 
-        telemetry.addData("Motors Stopped", "Stopped");
+        telemetry.addData("Motor status", "Stopped");
+    }
+//GUYS HELP
+    public void encoderStrafe(double speed,
+                              double inches,
+                              double timeoutS){
+        int newFrontLeftTarget;
+        int newFrontRightTarget;
+        int newRearLeftTarget;
+        int newRearRightTarget;
+
+        if (opModeIsActive()){
+            newFrontLeftTarget = frontLeft.getCurrentPosition()-(int)(inches * COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition()-(int)(inches * COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * COUNTS_PER_INCH);
+
+            frontLeft.setTargetPosition(newFrontLeftTarget);
+            frontRight.setTargetPosition(newFrontRightTarget);
+            rearLeft.setTargetPosition(newRearLeftTarget);
+            rearRight.setTargetPosition(newRearRightTarget);
+
+            frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            runtime.reset();
+
+            frontLeft.setPower(speed);
+            frontRight.setPower(speed);
+            rearLeft.setPower(speed);
+            rearRight.setPower(speed);
+
+            while (opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (leftDrive.isBusy() && rightDrive.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("Running to",  " %7d :%7d :%7d :%7d",
+                        newFrontLeftTarget,  newFrontRightTarget,
+                        newRearLeftTarget, newRearRightTarget);
+                telemetry.addData("Currently at",  " at %7d :%7d :%7d :%7d",
+                        frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
+                        rearLeft.getCurrentPosition(), rearRight.getCurrentPosition());
+                telemetry.update();
+            }
+
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            rearLeft.setPower(0);
+            rearRight.setPower(0);
+
+            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
     }
 
     public void encoderDrive(double speed,

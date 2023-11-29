@@ -91,7 +91,8 @@ public class Teleop24 extends OpMode {
         // Position of elevator arm motor encoder
         telemetry.addData("Elevator Arm Position:", elevatorPivot.getCurrentPosition());
 
-        double drive = (gamepad1.left_stick_y);//inverted???
+        //this segment is the bane of my existence
+        double drive = (-gamepad1.left_stick_y);//inverted???
         double strafe = (-gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
 
@@ -142,8 +143,8 @@ public class Teleop24 extends OpMode {
         }
 
         if (closeGrip) {
-            gripperLeft.setPosition(-0.025);
-            gripperRight.setPosition(-0.025);
+            gripperLeft.setPosition(0);
+            gripperRight.setPosition(0);
             telemetry.addData("grip closing", gripperRight.getPosition());
             telemetry.update();
         } else if (openGrip){
@@ -152,6 +153,5 @@ public class Teleop24 extends OpMode {
             telemetry.addData("grip opening", gripperRight.getPosition());
             telemetry.update();
         }
-
     }
 }
