@@ -52,6 +52,8 @@ public class Teleop24 extends OpMode {
         rearRight.setDirection(DcMotor.Direction.FORWARD);
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
 
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
 
@@ -60,7 +62,8 @@ public class Teleop24 extends OpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        moveToPos(elevatorPivotCrawlSpeed, pivotHome);
 
         telemetry.addData("Status", "Robot Code Initialized");
     }
@@ -69,7 +72,7 @@ public class Teleop24 extends OpMode {
     private void moveToPos(double pow, int pos) {
         elevatorPivot.setPower(pow);
         elevatorPivot.setTargetPosition(pos);
-        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     @Override
