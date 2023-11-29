@@ -37,7 +37,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital????????
-
+@Disabled
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
  * The code is structured as a LinearOpMode

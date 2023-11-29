@@ -52,6 +52,7 @@ public class Teleop24 extends OpMode {
         rearRight.setDirection(DcMotor.Direction.FORWARD);
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
 
+        elevatorPivot.setTargetPosition(0);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
@@ -96,7 +97,7 @@ public class Teleop24 extends OpMode {
 
         //this segment is the bane of my existence
         double drive = (-gamepad1.left_stick_y);//inverted???
-        double strafe = (-gamepad1.left_stick_x);//inverted???
+        double strafe = (gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
 
         boolean pivotUp = (gamepad2.y);
@@ -138,11 +139,14 @@ public class Teleop24 extends OpMode {
         if(pivotReset ) {
             moveToPos(elevatorPivotDownSpeed,pivotHome + 20);
             moveToPos(elevatorPivotCrawlSpeed,pivotHome);
+            elevatorPivot.setPower(0);
         }
 
         // Debugging to tell when the moveToPos function is complete
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
+        } else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
+            elevatorPivot.setPower(0);
         }
 
         if (closeGrip) {
