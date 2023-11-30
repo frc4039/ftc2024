@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Teleop24 extends OpMode {
 
+    private boolean desiredPos; //true is up, false is down
+
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor rearLeft;
@@ -38,6 +40,7 @@ public class Teleop24 extends OpMode {
 //    private ElapsedTime runtime = new ElapsedTime();
 
     public void init(){
+        desiredPos = false;
 
         frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -57,6 +60,10 @@ public class Teleop24 extends OpMode {
         rearRight.setDirection(DcMotor.Direction.FORWARD);
 
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elevatorPivot.setPower(0.0);
+//        elevatorPivot.setTargetPosition(0);
+//        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         climbHoist.setDirection(DcMotor.Direction.FORWARD);
 
@@ -68,8 +75,8 @@ public class Teleop24 extends OpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+  //      moveToPos(elevatorPivotCrawlSpeed, pivotHome);
 
         climbHoist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -143,16 +150,18 @@ public class Teleop24 extends OpMode {
 
         //PIVOT CONTROLS
         // Move up to scoring position
-        if(pivotUp ) {
+        if(pivotUp && !desiredPos) {
+            desiredPos = true;
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
             // May need to add a timeout here as it appears to take a while to stop.
         }
 
         // Move down to intake position
-        if(pivotReset ) {
-         //   moveToPos(elevatorPivotDownSpeed,pivotHome + 20);
-            moveToPos(elevatorPivotCrawlSpeed,pivotHome);
+        if(pivotReset && desiredPos) {
+            desiredPos = false;
+            elevatorPivot.setPower(0);
+            elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         // Move up to climbing position
@@ -171,11 +180,13 @@ public class Teleop24 extends OpMode {
         // Debugging to tell when the moveToPos function is complete
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
+        } else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
+            elevatorPivot.setPower(0);
         }
 
         if (closeGrip) {
-            gripperLeft.setPosition(-0.025);
-            gripperRight.setPosition(-0.025);
+            gripperLeft.setPosition(0);
+            gripperRight.setPosition(0);
             telemetry.addData("grip closing", gripperRight.getPosition());
             telemetry.update();
         } else if (openGrip){
