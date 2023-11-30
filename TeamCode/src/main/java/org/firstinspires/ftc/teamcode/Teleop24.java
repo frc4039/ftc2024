@@ -24,7 +24,7 @@ public class Teleop24 extends OpMode {
 
     private int pivotHome = 0;
     private int pivotTarget = -95;
-    private int pivotClimbTarget = 100
+    private int pivotClimbTarget = -120
 
 
     private final double maxSpeed = 0.625;
@@ -177,9 +177,9 @@ public class Teleop24 extends OpMode {
         }
 
           // Climber Control System
-          if (spinClimber.isBusy) {
+          if (spinClimber == true) {
             moveClimber.climberpow(20);
-          } else if (!spinClimber.isBusy) {
+          } else if (spinClimber == false) {
             moveClimber.climberpow(0);
           }
     }
