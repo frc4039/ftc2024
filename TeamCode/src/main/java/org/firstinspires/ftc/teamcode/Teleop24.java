@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Teleop24 extends OpMode {
 
+    private boolean desiredPos; //true is up, false is down
+
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor rearLeft;
@@ -35,6 +37,7 @@ public class Teleop24 extends OpMode {
 //    private ElapsedTime runtime = new ElapsedTime();
 
     public void init(){
+        desiredPos = false;
 
         frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -51,9 +54,10 @@ public class Teleop24 extends OpMode {
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
-
-        elevatorPivot.setTargetPosition(0);
-        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elevatorPivot.setPower(0.0);
+//        elevatorPivot.setTargetPosition(0);
+//        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
@@ -63,8 +67,8 @@ public class Teleop24 extends OpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        moveToPos(elevatorPivotCrawlSpeed, pivotHome);
+        elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+  //      moveToPos(elevatorPivotCrawlSpeed, pivotHome);
 
         telemetry.addData("Status", "Robot Code Initialized");
     }
@@ -73,7 +77,7 @@ public class Teleop24 extends OpMode {
     private void moveToPos(double pow, int pos) {
         elevatorPivot.setPower(pow);
         elevatorPivot.setTargetPosition(pos);
-        //elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     @Override
@@ -130,16 +134,18 @@ public class Teleop24 extends OpMode {
 
         //PIVOT CONTROLS
         // Move up to scoring position
-        if(pivotUp ) {
+        if(pivotUp && !desiredPos) {
+            desiredPos = true;
+            elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
             // May need to add a timeout here as it appears to take a while to stop.
         }
 
         // Move down to intake position
-        if(pivotReset ) {
-            moveToPos(elevatorPivotDownSpeed,pivotHome + 20);
-            moveToPos(elevatorPivotCrawlSpeed,pivotHome);
+        if(pivotReset && desiredPos) {
+            desiredPos = false;
             elevatorPivot.setPower(0);
+            elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         // Debugging to tell when the moveToPos function is complete
