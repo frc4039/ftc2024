@@ -178,7 +178,7 @@ public class Teleop24 extends OpMode {
 
           // Climber Control System
           if (spinClimber == true) {
-            moveClimber.climberpow(20);
+            moveClimber.climberpow(0.75);
           } else if (spinClimber == false) {
             moveClimber.climberpow(0);
           }
