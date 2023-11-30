@@ -24,14 +24,14 @@ public class Teleop24 extends OpMode {
 
     private int pivotHome = 0;
     private int pivotTarget = -95;
-    private int pivotClimbTarget = -120
+    private int pivotClimbTarget = -190;
 
 
     private final double maxSpeed = 0.625;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
     private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
-    private final double elevatorPivotClimbSpeed = elevatorPivotUpSpeed;
+    private final double elevatorPivotClimbSpeed = 0.6;
 
     private final double gripperSpeed = 0.3;
 
@@ -84,7 +84,7 @@ public class Teleop24 extends OpMode {
     }
 
     private void moveClimber(double climberpow) {
-        climbHoist.setpower(climberpow)
+        climbHoist.setPower(climberpow);
     }
 
     @Override
@@ -106,8 +106,8 @@ public class Teleop24 extends OpMode {
         // Position of elevator arm motor encoder
         telemetry.addData("Elevator Arm Position:", elevatorPivot.getCurrentPosition());
 
-        double drive = (gamepad1.left_stick_y);//inverted???
-        double strafe = (-gamepad1.left_stick_x);//inverted???
+        double drive = (-gamepad1.left_stick_y);//inverted???
+        double strafe = (gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
 
         boolean pivotUp = (gamepad2.y);
@@ -144,19 +144,28 @@ public class Teleop24 extends OpMode {
         //PIVOT CONTROLS
         // Move up to scoring position
         if(pivotUp ) {
+            elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
             // May need to add a timeout here as it appears to take a while to stop.
         }
 
         // Move down to intake position
         if(pivotReset ) {
-            moveToPos(elevatorPivotDownSpeed,pivotHome + 20);
+         //   moveToPos(elevatorPivotDownSpeed,pivotHome + 20);
             moveToPos(elevatorPivotCrawlSpeed,pivotHome);
         }
 
         // Move up to climbing position
         if (pivotClimb ) {
+            elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
+        }
+
+        if(!climbHoist.isBusy()){
+            climbHoist.setPower(0);
+        }
+        if(climbHoist.isBusy()) {
+            elevatorPivot.setPower(0);
         }
 
         // Debugging to tell when the moveToPos function is complete
@@ -178,9 +187,9 @@ public class Teleop24 extends OpMode {
 
           // Climber Control System
           if (spinClimber == true) {
-            moveClimber.climberpow(0.75);
+            moveClimber(0.75);
           } else if (spinClimber == false) {
-            moveClimber.climberpow(0);
+            moveClimber(0);
           }
     }
 }
