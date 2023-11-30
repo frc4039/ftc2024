@@ -15,20 +15,23 @@ public class Teleop24 extends OpMode {
     private DcMotor frontRight;
     private DcMotor rearLeft;
     private DcMotor rearRight;
+    
     private DcMotor elevatorPivot;
+    private DcMotor climbHoist;
 
     private Servo gripperLeft;
     private Servo gripperRight;
 
     private int pivotHome = 0;
     private int pivotTarget = -95;
+    private int pivotClimbTarget = 100
 
 
-    // I- don't think this does anything????
     private final double maxSpeed = 0.625;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
     private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
+    private final double elevatorPivotClimbSpeed = elevatorPivotUpSpeed;
 
     private final double gripperSpeed = 0.3;
 
@@ -43,6 +46,8 @@ public class Teleop24 extends OpMode {
 
         elevatorPivot = hardwareMap.get(DcMotor.class, "elevatorPivot");
 
+        climbHoist = hardwareMap.get(DcMotor.class, "climbHoist");
+
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
         // Maps motors to direction of rotation (Left motors are normally always reversed, may need testing)
@@ -50,7 +55,10 @@ public class Teleop24 extends OpMode {
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
+
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
+
+        climbHoist.setDirection(DcMotor.Direction.FORWARD);
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
@@ -60,7 +68,10 @@ public class Teleop24 extends OpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        climbHoist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         telemetry.addData("Status", "Robot Code Initialized");
     }
@@ -70,6 +81,10 @@ public class Teleop24 extends OpMode {
         elevatorPivot.setPower(pow);
         elevatorPivot.setTargetPosition(pos);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private void moveClimber(double climberpow) {
+        climbHoist.setpower(climberpow)
     }
 
     @Override
@@ -97,9 +112,12 @@ public class Teleop24 extends OpMode {
 
         boolean pivotUp = (gamepad2.y);
         boolean pivotReset = (gamepad2.a);
+        boolean pivotClimb = (gamepad2.x);
 
         boolean closeGrip = (gamepad2.left_bumper);
         boolean openGrip = (gamepad2.right_bumper);
+
+        boolean spinClimber = (gamepad2.b);
 
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
@@ -136,6 +154,11 @@ public class Teleop24 extends OpMode {
             moveToPos(elevatorPivotCrawlSpeed,pivotHome);
         }
 
+        // Move up to climbing position
+        if (pivotClimb ) {
+            moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
+        }
+
         // Debugging to tell when the moveToPos function is complete
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
@@ -153,5 +176,11 @@ public class Teleop24 extends OpMode {
             telemetry.update();
         }
 
+          // Climber Control System
+          if (spinClimber.isBusy) {
+            moveClimber.climberpow(20);
+          } else if (!spinClimber.isBusy) {
+            moveClimber.climberpow(0);
+          }
     }
 }
