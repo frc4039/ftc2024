@@ -24,6 +24,8 @@ public class Teleop24 extends OpMode {
     private Servo gripperLeft;
     private Servo gripperRight;
 
+    private Servo purplePixelGripper;
+
     private int pivotHome = 0;
     private int pivotTarget = -95;
     private int pivotClimbTarget = -190;
@@ -53,6 +55,8 @@ public class Teleop24 extends OpMode {
 
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
+
+        purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
         // Maps motors to direction of rotation (Left motors are normally always reversed, may need testing)
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -69,6 +73,10 @@ public class Teleop24 extends OpMode {
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
+
+        purplePixelGripper.setDirection(Servo.Direction.REVERSE);
+
+        purplePixelGripper.setPosition(0.0);
 
         // When no power is set on a motor, brake.
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -113,6 +121,8 @@ public class Teleop24 extends OpMode {
         // Position of elevator arm motor encoder
         telemetry.addData("Elevator Arm Position:", elevatorPivot.getCurrentPosition());
 
+        telemetry.addData("Purple pixel servo position:", purplePixelGripper.getPosition());
+
         double drive = (-gamepad1.left_stick_y);//inverted???
         double strafe = (gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
@@ -127,6 +137,8 @@ public class Teleop24 extends OpMode {
         boolean spinClimber = (gamepad2.b);
 
         boolean resetElevatorPivotButton = (gamepad2.left_stick_button);
+
+        boolean openPurplePixelGripper = (gamepad2.right_stick_button);
 
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
@@ -209,6 +221,10 @@ public class Teleop24 extends OpMode {
 
           if (resetElevatorPivotButton == true) {
               elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+          }
+
+          if(openPurplePixelGripper == true) {
+              purplePixelGripper.setPosition(0.1);
           }
     }
 }
