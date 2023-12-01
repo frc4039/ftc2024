@@ -11,33 +11,36 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Teleop24 extends OpMode {
 
-    private boolean desiredPos; //true is up, false is down
+    private boolean UpPos; //true is up, false is down
 
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor rearLeft;
     private DcMotor rearRight;
+    
     private DcMotor elevatorPivot;
+    private DcMotor climbHoist;
 
     private Servo gripperLeft;
     private Servo gripperRight;
 
     private int pivotHome = 0;
     private int pivotTarget = -95;
+    private int pivotClimbTarget = -190;
 
 
-    // I- don't think this does anything????
     private final double maxSpeed = 0.625;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
     private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
+    private final double elevatorPivotClimbSpeed = 0.6;
 
     private final double gripperSpeed = 0.3;
 
 //    private ElapsedTime runtime = new ElapsedTime();
 
     public void init(){
-        desiredPos = false;
+        UpPos = false;
 
         frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -46,6 +49,8 @@ public class Teleop24 extends OpMode {
 
         elevatorPivot = hardwareMap.get(DcMotor.class, "elevatorPivot");
 
+        climbHoist = hardwareMap.get(DcMotor.class, "climbHoist");
+
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
         // Maps motors to direction of rotation (Left motors are normally always reversed, may need testing)
@@ -53,11 +58,14 @@ public class Teleop24 extends OpMode {
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
+
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         elevatorPivot.setPower(0.0);
 //        elevatorPivot.setTargetPosition(0);
 //        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        climbHoist.setDirection(DcMotor.Direction.FORWARD);
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
@@ -70,6 +78,8 @@ public class Teleop24 extends OpMode {
         elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
   //      moveToPos(elevatorPivotCrawlSpeed, pivotHome);
 
+        climbHoist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         telemetry.addData("Status", "Robot Code Initialized");
     }
 
@@ -78,6 +88,10 @@ public class Teleop24 extends OpMode {
         elevatorPivot.setPower(pow);
         elevatorPivot.setTargetPosition(pos);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private void moveClimber(double climberpow) {
+        climbHoist.setPower(climberpow);
     }
 
     @Override
@@ -99,16 +113,18 @@ public class Teleop24 extends OpMode {
         // Position of elevator arm motor encoder
         telemetry.addData("Elevator Arm Position:", elevatorPivot.getCurrentPosition());
 
-        //this segment is the bane of my existence
         double drive = (-gamepad1.left_stick_y);//inverted???
         double strafe = (gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
 
         boolean pivotUp = (gamepad2.y);
         boolean pivotReset = (gamepad2.a);
+        boolean pivotClimb = (gamepad2.x);
 
         boolean closeGrip = (gamepad2.left_bumper);
         boolean openGrip = (gamepad2.right_bumper);
+
+        boolean spinClimber = (gamepad2.b);
 
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
@@ -134,26 +150,41 @@ public class Teleop24 extends OpMode {
 
         //PIVOT CONTROLS
         // Move up to scoring position
-        if(pivotUp && !desiredPos) {
-            desiredPos = true;
+        if(pivotUp && !UpPos) {
+            UpPos = true;
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
             // May need to add a timeout here as it appears to take a while to stop.
         }
 
         // Move down to intake position
-        if(pivotReset && desiredPos) {
-            desiredPos = false;
+        if(pivotReset ) {
+            UpPos = false;
             elevatorPivot.setPower(0);
             elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+
+        // Move up to climbing position
+        if (pivotClimb ) {
+            elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
+        }
+
+        if(!climbHoist.isBusy()){
+            climbHoist.setPower(0);
+        }
+        if(climbHoist.isBusy()) {
+            elevatorPivot.setPower(0);
         }
 
         // Debugging to tell when the moveToPos function is complete
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
-        } else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
-            elevatorPivot.setPower(0);
         }
+        // This is no longer requried as the power is set to 0 at time of lowering.
+        //else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
+        //    elevatorPivot.setPower(0);
+        //}
 
         if (closeGrip) {
             gripperLeft.setPosition(0);
@@ -166,5 +197,12 @@ public class Teleop24 extends OpMode {
             telemetry.addData("grip opening", gripperRight.getPosition());
             telemetry.update();
         }
+
+          // Climber Control System
+          if (spinClimber == true) {
+            moveClimber(0.75);
+          } else if (spinClimber == false) {
+            moveClimber(0);
+          }
     }
 }
