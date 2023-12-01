@@ -166,10 +166,6 @@ public class Teleop24 extends OpMode {
 
         // Move up to climbing position
         if (pivotClimb ) {
-            if (UpPos){
-                elevatorPivot.setPower(0);
-                elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
         }
@@ -184,9 +180,11 @@ public class Teleop24 extends OpMode {
         // Debugging to tell when the moveToPos function is complete
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
-        } else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
-            elevatorPivot.setPower(0);
         }
+        // This is no longer requried as the power is set to 0 at time of lowering.
+        //else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
+        //    elevatorPivot.setPower(0);
+        //}
 
         if (closeGrip) {
             gripperLeft.setPosition(0);
