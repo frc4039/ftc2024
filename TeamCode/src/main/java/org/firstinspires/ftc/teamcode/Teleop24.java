@@ -126,6 +126,8 @@ public class Teleop24 extends OpMode {
 
         boolean spinClimber = (gamepad2.b);
 
+        boolean resetElevatorPivotButton = (gamepad2.left_stick_button);
+
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
          drive = drive * drive * Math.signum(drive);
@@ -203,6 +205,10 @@ public class Teleop24 extends OpMode {
             moveClimber(0.75);
           } else if (spinClimber == false) {
             moveClimber(0);
+          }
+
+          if (resetElevatorPivotButton == true) {
+              elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
           }
     }
 }
