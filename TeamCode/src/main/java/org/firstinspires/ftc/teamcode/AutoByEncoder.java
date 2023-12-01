@@ -40,7 +40,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital????????
-@Disabled
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
  * The code is structured as a LinearOpMode
@@ -106,7 +105,7 @@ public class AutoByEncoder extends LinearOpMode {
     static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
     static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
-    static final double     CENTER_GRIPPER_OPEN = .2;
+    static final double     CENTER_GRIPPER_OPEN = 0.2;
 
     @Override
     public void runOpMode() {
@@ -118,6 +117,8 @@ public class AutoByEncoder extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
         rearRight = hardwareMap.get(DcMotor.class, "rearRight");
+
+        purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -132,14 +133,6 @@ public class AutoByEncoder extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        // Step through each leg of the path,
-        // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        /**
-         encoderDrive(DRIVE_SPEED,  48,  48, 5.0);  // S1: Forward 47 Inches with 5 Sec timeout
-         encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
-         encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
-         **/
-        //Step 1: Check which position the can is in.
         encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(SEARCH_SPEED,12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
@@ -177,7 +170,10 @@ public class AutoByEncoder extends LinearOpMode {
                 break;
         }
         //raise arm
+        // move foward a bit
         //drop pixel
+        // move back
+        // lower arm
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -242,7 +238,7 @@ public class AutoByEncoder extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
+                if(!RightBeam.isPressed() || !LeftBeam.isPressed() || !RearBeam.isPressed()){
                     objectFlag = true;
                     telemetry.addData("Move Operation","Object found!");
                 }
