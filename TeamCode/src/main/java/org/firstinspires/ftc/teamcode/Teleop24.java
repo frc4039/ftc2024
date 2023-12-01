@@ -33,7 +33,7 @@ public class Teleop24 extends OpMode {
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
     private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
-    private final double elevatorPivotClimbSpeed = 0.6;
+    private final double elevatorPivotClimbSpeed = 0.4;
 
     private final double gripperSpeed = 0.3;
 
