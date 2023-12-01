@@ -39,8 +39,6 @@ public class Teleop24 extends OpMode {
 
     private final double gripperSpeed = 0.3;
 
-    private final double purplePixelGripperTarget = 0.1;
-
 //    private ElapsedTime runtime = new ElapsedTime();
 
     public void init(){
@@ -76,7 +74,9 @@ public class Teleop24 extends OpMode {
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
 
-        purplePixelGripper.setDirection(Servo.Direction.FORWARD);
+        purplePixelGripper.setDirection(Servo.Direction.REVERSE);
+
+        purplePixelGripper.setPosition(0.0);
 
         // When no power is set on a motor, brake.
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -120,6 +120,8 @@ public class Teleop24 extends OpMode {
         telemetry.addData("Right Back Motor Encoder:", rearRight.getCurrentPosition());
         // Position of elevator arm motor encoder
         telemetry.addData("Elevator Arm Position:", elevatorPivot.getCurrentPosition());
+
+        telemetry.addData("Purple pixel servo position:", purplePixelGripper.getPosition());
 
         double drive = (-gamepad1.left_stick_y);//inverted???
         double strafe = (gamepad1.left_stick_x);//inverted???
@@ -222,7 +224,7 @@ public class Teleop24 extends OpMode {
           }
 
           if(openPurplePixelGripper == true) {
-              purplePixelGripper.setPosition(purplePixelGripperTarget);
+              purplePixelGripper.setPosition(0.3);
           }
     }
 }
