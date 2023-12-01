@@ -33,7 +33,7 @@ public class Teleop24 extends OpMode {
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
     private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
-    private final double elevatorPivotClimbSpeed = 0.4;
+    private final double elevatorPivotClimbSpeed = 0.6;
 
     private final double gripperSpeed = 0.3;
 
@@ -126,6 +126,8 @@ public class Teleop24 extends OpMode {
 
         boolean spinClimber = (gamepad2.b);
 
+        boolean resetElevatorPivotButton = (gamepad2.left_stick_button);
+
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
          drive = drive * drive * Math.signum(drive);
@@ -203,6 +205,10 @@ public class Teleop24 extends OpMode {
             moveClimber(0.75);
           } else if (spinClimber == false) {
             moveClimber(0);
+          }
+
+          if (resetElevatorPivotButton == true) {
+              elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
           }
     }
 }
