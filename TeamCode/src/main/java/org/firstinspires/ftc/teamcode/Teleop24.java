@@ -224,7 +224,7 @@ public class Teleop24 extends OpMode {
           }
 
           if(openPurplePixelGripper == true) {
-              purplePixelGripper.setPosition(0.3);
+              purplePixelGripper.setPosition(0.1);
           }
     }
 }
