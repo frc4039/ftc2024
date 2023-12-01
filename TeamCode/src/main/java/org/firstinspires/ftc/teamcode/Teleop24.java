@@ -24,6 +24,8 @@ public class Teleop24 extends OpMode {
     private Servo gripperLeft;
     private Servo gripperRight;
 
+    private Servo purplePixelGripper;
+
     private int pivotHome = 0;
     private int pivotTarget = -95;
     private int pivotClimbTarget = -190;
@@ -36,6 +38,8 @@ public class Teleop24 extends OpMode {
     private final double elevatorPivotClimbSpeed = 0.6;
 
     private final double gripperSpeed = 0.3;
+
+    private final double purplePixelGripperTarget = 0.1;
 
 //    private ElapsedTime runtime = new ElapsedTime();
 
@@ -53,6 +57,8 @@ public class Teleop24 extends OpMode {
 
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
+
+        purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
         // Maps motors to direction of rotation (Left motors are normally always reversed, may need testing)
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -69,6 +75,8 @@ public class Teleop24 extends OpMode {
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
+
+        purplePixelGripper.setDirection(Servo.Direction.FORWARD);
 
         // When no power is set on a motor, brake.
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -127,6 +135,8 @@ public class Teleop24 extends OpMode {
         boolean spinClimber = (gamepad2.b);
 
         boolean resetElevatorPivotButton = (gamepad2.left_stick_button);
+
+        boolean openPurplePixelGripper = (gamepad2.right_stick_button);
 
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
@@ -209,6 +219,10 @@ public class Teleop24 extends OpMode {
 
           if (resetElevatorPivotButton == true) {
               elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+          }
+
+          if(openPurplePixelGripper == true) {
+              purplePixelGripper.setPosition(purplePixelGripperTarget);
           }
     }
 }
