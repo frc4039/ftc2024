@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Teleop24 extends OpMode {
 
-    private boolean desiredPos; //true is up, false is down
+    private boolean UpPos; //true is up, false is down
 
     private DcMotor frontLeft;
     private DcMotor frontRight;
@@ -40,7 +40,7 @@ public class Teleop24 extends OpMode {
 //    private ElapsedTime runtime = new ElapsedTime();
 
     public void init(){
-        desiredPos = false;
+        UpPos = false;
 
         frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
@@ -150,22 +150,26 @@ public class Teleop24 extends OpMode {
 
         //PIVOT CONTROLS
         // Move up to scoring position
-        if(pivotUp && !desiredPos) {
-            desiredPos = true;
+        if(pivotUp && !UpPos) {
+            UpPos = true;
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
             // May need to add a timeout here as it appears to take a while to stop.
         }
 
         // Move down to intake position
-        if(pivotReset && desiredPos) {
-            desiredPos = false;
+        if(pivotReset ) {
+            UpPos = false;
             elevatorPivot.setPower(0);
             elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         // Move up to climbing position
         if (pivotClimb ) {
+            if (UpPos){
+                elevatorPivot.setPower(0);
+                elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
         }
