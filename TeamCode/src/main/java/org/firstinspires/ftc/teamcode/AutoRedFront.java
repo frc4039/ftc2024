@@ -146,15 +146,6 @@ public class AutoRedFront extends LinearOpMode {
 */
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-/*
-        while(opModeIsActive()) {
-            telemetry.addData("LeftBeam", LeftBeam.isPressed());
-            telemetry.addData("RightBeam", RightBeam.isPressed());
-            telemetry.addData("RearBeam", RearBeam .isPressed());
-            telemetry.update();
-        }
-        stop();
-*/
 
             encoderStrafe(DRIVE_SPEED, -28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(SEARCH_SPEED,-12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
