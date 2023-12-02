@@ -67,7 +67,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital??????
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Drive", group="Robot")
+@Autonomous(name="2024: Auto Blue Front", group="Robot")
 public class AutoByEncoder extends LinearOpMode {
 
 
@@ -165,20 +165,21 @@ public class AutoByEncoder extends LinearOpMode {
             objectFound = true;
             objectLocation = Location.Second;
         }
-        encoderStrafe(DRIVE_SPEED,-12,5);  // Move back to center position
+        encoderStrafe(DRIVE_SPEED,-10,5);  // Move back to center position
         if (!objectFound){
-            if(encoderDrive(SEARCH_SPEED,-12,5)){  // object found in position 2
+            if(encoderDrive(SEARCH_SPEED,-10,5)){  // object found in position 2
                 purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
                 objectFound = true;
                 objectLocation = Location.Third;
             }
+            encoderDrive(DRIVE_SPEED,10,5);  // Move back to center position
         }
-        encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
         if (!objectFound){
-            encoderDrive(SEARCH_SPEED,12,5);
+            encoderDrive(SEARCH_SPEED,9,5);
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             objectLocation = Location.First;
         }
+ /*       stop();
         encoderDrive(DRIVE_SPEED,-12,5); // move back to center position
 
         encoderStrafe(DRIVE_SPEED,-24,5); //move back to center of first tile
@@ -235,7 +236,7 @@ public class AutoByEncoder extends LinearOpMode {
         }
         encoderDrive(DRIVE_SPEED,10,5);
 
-
+*/
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.

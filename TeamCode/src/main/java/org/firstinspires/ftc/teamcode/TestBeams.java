@@ -64,8 +64,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Blue Back", group="Robot")
-public class AutoBlueBack extends LinearOpMode {
+@Autonomous(name="2024: Test Beams", group="Robot")
+public class TestBeams extends LinearOpMode {
 
 
 
@@ -149,7 +149,7 @@ public class AutoBlueBack extends LinearOpMode {
 */
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-/*
+
         while(opModeIsActive()) {
             telemetry.addData("LeftBeam", LeftBeam.isPressed());
             telemetry.addData("RightBeam", RightBeam.isPressed());
@@ -157,7 +157,7 @@ public class AutoBlueBack extends LinearOpMode {
             telemetry.update();
         }
         stop();
-*/
+
 
             encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(SEARCH_SPEED, 12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.

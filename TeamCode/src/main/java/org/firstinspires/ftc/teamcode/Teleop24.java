@@ -64,7 +64,6 @@ public class Teleop24 extends OpMode {
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
-
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         elevatorPivot.setPower(0.0);
@@ -237,7 +236,7 @@ public class Teleop24 extends OpMode {
           }
 
         if(launchDrone == true) {
-            droneLauncher.setPosition(0.3);
+            droneLauncher.setPosition(-0.3);
             telemetry.addData("Launch Drone","Launching");
             telemetry.update();
         }
