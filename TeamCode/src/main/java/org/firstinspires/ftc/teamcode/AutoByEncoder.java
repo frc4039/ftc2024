@@ -106,7 +106,8 @@ public class AutoByEncoder extends LinearOpMode {
     static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
     static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
-    static final double     CENTER_GRIPPER_OPEN = 0.2;
+    static final double     CENTER_GRIPPER_OPEN = 0.1;
+    private final double elevatorPivotUpSpeed = 1;  // Full power to lift
 
     @Override
     public void runOpMode() {
@@ -131,6 +132,8 @@ public class AutoByEncoder extends LinearOpMode {
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        purplePixelGripper.setPosition(0);
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 /*
@@ -147,27 +150,27 @@ public class AutoByEncoder extends LinearOpMode {
         if (encoderStrafe(SEARCH_SPEED,12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             objectFound = true;
-            objectLocation = Location.First;
+            objectLocation = Location.Second;
         }
         encoderStrafe(DRIVE_SPEED,-12,5);  // Move back to center position
         if (!objectFound){
-            if(encoderDrive(SEARCH_SPEED,-12,-12,5)){  // object found in position 2
+            if(encoderDrive(SEARCH_SPEED,-12,5)){  // object found in position 2
                 purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
                 objectFound = true;
-                objectLocation = Location.Second;
+                objectLocation = Location.Third;
             }
         }
-        encoderDrive(DRIVE_SPEED,12,12,5);  // Move back to center position
+        encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
         if (!objectFound){
-            encoderDrive(SEARCH_SPEED,12,12,5);
+            encoderDrive(SEARCH_SPEED,12,5);
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
-            objectLocation = Location.Third;
+            objectLocation = Location.First;
         }
-        encoderDrive(DRIVE_SPEED,-12,-12,5); // move back to center position
+        encoderDrive(DRIVE_SPEED,-12,5); // move back to center position
 
         encoderStrafe(DRIVE_SPEED,-24,5); //move back to center of first tile
-        encoderDrive(DRIVE_SPEED,3*24,3*24,10); // For starting on front stage
-//        encoderDrive(DRIVE_SPEED,24,24,5); //For starting on back stage
+        encoderDrive(DRIVE_SPEED,3*24,10); // For starting on front stage
+//        encoderDrive(DRIVE_SPEED,24,5); //For starting on back stage
         switch (objectLocation){
             case First:
                 encoderStrafe(DRIVE_SPEED,5,5);
@@ -180,10 +183,45 @@ public class AutoByEncoder extends LinearOpMode {
                 break;
         }
         //raise arm
+        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevatorPivot.setPower(elevatorPivotUpSpeed);
+        elevatorPivot.setTargetPosition(pivotTarget);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        while (elevatorPivot.isBusy() && opModeIsActive());
+        // Or....   sleep(3000);
+
         // move foward a bit
+        encoderDrive(SEARCH_SPEED,5,5);
+
         //drop pixel
+        gripperLeft.setPosition(0.25);
+        gripperRight.setPosition(0.25);
+        telemetry.addData("grip opening", gripperRight.getPosition());
+        telemetry.update();
+
         // move back
+        encoderDrive(DRIVE_SPEED,-5,5);
+
         // lower arm
+        elevatorPivot.setPower(0);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        sleep(500);
+
+        switch (objectLocation){
+            case First:
+                encoderStrafe(DRIVE_SPEED,-5,5);
+                break;
+            case Second:
+                encoderStrafe(DRIVE_SPEED,-10,5);
+                break;
+            default:
+                encoderStrafe(DRIVE_SPEED,-15,5);
+                break;
+        }
+        encoderDrive(DRIVE_SPEED,5,5);
+
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -199,19 +237,7 @@ public class AutoByEncoder extends LinearOpMode {
      *  3) Driver stops the OpMode running.
      */
 
-    public void openPurplePixelGripper(Servo purplePixelGripper, int position){
-        purplePixelGripper.setPosition(position);
-    }
 
-    private void stopMotors(){
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        rearLeft.setPower(0);
-        rearRight.setPower(0);
-
-        telemetry.addData("Motor status", "Stopped");
-    }
-//GUYS HELP
     public boolean encoderStrafe(double speed,
                               double inches,
                               double timeoutS){
@@ -248,7 +274,7 @@ public class AutoByEncoder extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-                if(!RightBeam.isPressed() || !LeftBeam.isPressed() || !RearBeam.isPressed()){
+                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
                     objectFlag = true;
                     telemetry.addData("Move Operation","Object found!");
                 }
@@ -277,7 +303,7 @@ public class AutoByEncoder extends LinearOpMode {
     }
 
     public boolean encoderDrive(double speed,
-                             double leftInches, double rightInches,
+                             double inches,
                              double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
@@ -289,10 +315,10 @@ public class AutoByEncoder extends LinearOpMode {
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            newFrontLeftTarget = frontLeft.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
-            newFrontRightTarget = frontRight.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
-            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
-            newRearRightTarget = rearRight.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
+            newFrontLeftTarget = frontLeft.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
 
             frontLeft.setTargetPosition(newFrontLeftTarget);
             frontRight.setTargetPosition(newFrontRightTarget);
