@@ -29,15 +29,18 @@
 
 package org.firstinspires.ftc.teamcode;
 
+
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital????????
-@Disabled
+
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
  * The code is structured as a LinearOpMode
@@ -64,59 +67,59 @@ import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital??????
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Robot: Auto Drive By Encoder Test", group="Robot")
+@Autonomous(name="2024: Auto Drive", group="Robot")
 public class AutoByEncoder extends LinearOpMode {
 
-    /* Declare OpMode members. */
-    private DcMotor         leftDrive   = null;
-    private DcMotor         rightDrive  = null;
 
-    // Declare newer OpMode members.
+
+    private final int pivotHome = 0;
+    private final int pivotTarget = -95;
+    private boolean objectFound = false;
+    enum Location{First,Second, Third}
+    private Location objectLocation = null;
+
+
+    // Declare Motors.  All but climbing motor is required in auto
     private DcMotor frontLeft = null;
     private DcMotor frontRight = null;
     private DcMotor rearLeft = null;
     private DcMotor rearRight = null;
+    private DcMotor elevatorPivot = null;
 
+    // Declare Servos
     private Servo purplePixelGripper = null;
-
-    private DigitalChannel leftA = null;
-    private DigitalChannel leftB = null;
-    private DigitalChannel rightA = null;
-    private DigitalChannel rightB = null;
-    private DigitalChannel strafeA = null;
-    private DigitalChannel strafeB = null;
+    private Servo gripperLeft;
+    private Servo gripperRight;
+    //  Declare beam breaker sensors.  They function the same as touch sensors so using the touch sensor class
+    private TouchSensor LeftBeam = null;
+    private TouchSensor RightBeam = null;
+    private TouchSensor RearBeam = null;
+    // runtime used for timeout during moves in case an obstetrical is encountered.
     private ElapsedTime     runtime = new ElapsedTime();
 
-    // Calculate the COUNTS_PER_INCH for your specific drive train.
-    // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
-    // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
-    // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
-    // This is gearing DOWN for less speed and more torque.
-    // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
-    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // No External Gearing.
-    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 0.6;
-    static final double     TURN_SPEED              = 0.5;
 
-    private final double maxSpeed = 0.625;
+    // Counts per inch are based on field measurements
+
+    static final double     DRIVE_COUNTS_PER_INCH         = 51;
+    static final double     STRAFE_COUNTS_PER_INCH        = 51;
+    static final double     DRIVE_SPEED             = 0.4039;
+    static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
+    static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
+    private final double maxSpeed = 0.625;   // Don't think this will be needed.
+    static final double     CENTER_GRIPPER_OPEN = 0.2;
 
     @Override
     public void runOpMode() {
-        leftA = hardwareMap.get(DigitalChannel.class, "leftA");
-        leftB = hardwareMap.get(DigitalChannel.class, "leftB");
-        rightA = hardwareMap.get(DigitalChannel.class, "rightA");
-        rightB = hardwareMap.get(DigitalChannel.class, "rightB");
-        strafeA = hardwareMap.get(DigitalChannel.class, "strafeA");
-        strafeB = hardwareMap.get(DigitalChannel.class, "strafeB");
-
+        RightBeam =  hardwareMap.get(TouchSensor.class, "Right");
+        LeftBeam = hardwareMap.get(TouchSensor.class,"Left");
+        RearBeam = hardwareMap.get(TouchSensor.class, "Rear");
 
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
         rearRight = hardwareMap.get(DcMotor.class, "rearRight");
+
+        purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -127,43 +130,60 @@ public class AutoByEncoder extends LinearOpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        /**
- *
-        // Initialize the drive system variables.
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
 
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
-
-        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("Starting at",  "%7d :%7d",
-                leftDrive.getCurrentPosition(),
-                rightDrive.getCurrentPosition());
-        telemetry.update();
-**/
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+/*
+        while(opModeIsActive()) {
+            telemetry.addData("LeftBeam", LeftBeam.isPressed());
+            telemetry.addData("RightBeam", RightBeam.isPressed());
+            telemetry.addData("RearBeam", RearBeam .isPressed());
+            telemetry.update();
+        }
+        stop();
+*/
 
-        // Step through each leg of the path,
-        // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        /**
-         encoderDrive(DRIVE_SPEED,  48,  48, 5.0);  // S1: Forward 47 Inches with 5 Sec timeout
-         encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
-         encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
-         **/
-        //Step 1: Check which position the can is in.
-        encoderStrafe(DRIVE_SPEED, 48.0, 5);
+            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
+        if (encoderStrafe(SEARCH_SPEED,12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+            objectFound = true;
+            objectLocation = Location.First;
+        }
+        encoderStrafe(DRIVE_SPEED,-12,5);  // Move back to center position
+        if (!objectFound){
+            if(encoderDrive(SEARCH_SPEED,-12,-12,5)){  // object found in position 2
+                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+                objectFound = true;
+                objectLocation = Location.Second;
+            }
+        }
+        encoderDrive(DRIVE_SPEED,12,12,5);  // Move back to center position
+        if (!objectFound){
+            encoderDrive(SEARCH_SPEED,12,12,5);
+            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+            objectLocation = Location.Third;
+        }
+        encoderDrive(DRIVE_SPEED,-12,-12,5); // move back to center position
 
+        encoderStrafe(DRIVE_SPEED,-24,5); //move back to center of first tile
+        encoderDrive(DRIVE_SPEED,3*24,3*24,10); // For starting on front stage
+//        encoderDrive(DRIVE_SPEED,24,24,5); //For starting on back stage
+        switch (objectLocation){
+            case First:
+                encoderStrafe(DRIVE_SPEED,5,5);
+                break;
+            case Second:
+                encoderStrafe(DRIVE_SPEED,10,5);
+                break;
+            default:
+                encoderStrafe(DRIVE_SPEED,15,5);
+                break;
+        }
+        //raise arm
+        // move foward a bit
+        //drop pixel
+        // move back
+        // lower arm
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -192,19 +212,21 @@ public class AutoByEncoder extends LinearOpMode {
         telemetry.addData("Motor status", "Stopped");
     }
 //GUYS HELP
-    public void encoderStrafe(double speed,
+    public boolean encoderStrafe(double speed,
                               double inches,
                               double timeoutS){
+        // Return value is True if item is found and false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
         int newRearLeftTarget;
         int newRearRightTarget;
+        boolean objectFlag = false;
 
         if (opModeIsActive()){
-            newFrontLeftTarget = frontLeft.getCurrentPosition()-(int)(inches * COUNTS_PER_INCH);
-            newFrontRightTarget = frontRight.getCurrentPosition()-(int)(inches * COUNTS_PER_INCH);
-            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * COUNTS_PER_INCH);
-            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * COUNTS_PER_INCH);
+            newFrontLeftTarget = frontLeft.getCurrentPosition()-(int)(inches * STRAFE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition()-(int)(inches * STRAFE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * STRAFE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * STRAFE_COUNTS_PER_INCH);
 
             frontLeft.setTargetPosition(newFrontLeftTarget);
             frontRight.setTargetPosition(newFrontRightTarget);
@@ -225,8 +247,11 @@ public class AutoByEncoder extends LinearOpMode {
 
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
-                    (leftDrive.isBusy() && rightDrive.isBusy())) {
-
+                    (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+                if(!RightBeam.isPressed() || !LeftBeam.isPressed() || !RearBeam.isPressed()){
+                    objectFlag = true;
+                    telemetry.addData("Move Operation","Object found!");
+                }
                 // Display it for the driver.
                 telemetry.addData("Running to",  " %7d :%7d :%7d :%7d",
                         newFrontLeftTarget,  newFrontRightTarget,
@@ -247,31 +272,45 @@ public class AutoByEncoder extends LinearOpMode {
             rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+        return objectFlag;
+
     }
 
-    public void encoderDrive(double speed,
+    public boolean encoderDrive(double speed,
                              double leftInches, double rightInches,
-                             double timeoutS) {
-        int newLeftTarget;
-        int newRightTarget;
+                             double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
+        int newFrontLeftTarget;
+        int newFrontRightTarget;
+        int newRearLeftTarget;
+        int newRearRightTarget;
+        boolean objectFlag = false;
 
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            newLeftTarget = leftDrive.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
-            newRightTarget = rightDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
-            leftDrive.setTargetPosition(newLeftTarget);
-            rightDrive.setTargetPosition(newRightTarget);
+            newFrontLeftTarget = frontLeft.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition()+(int)(leftInches * DRIVE_COUNTS_PER_INCH);
+
+            frontLeft.setTargetPosition(newFrontLeftTarget);
+            frontRight.setTargetPosition(newFrontRightTarget);
+            rearLeft.setTargetPosition(newRearLeftTarget);
+            rearRight.setTargetPosition(newRearRightTarget);
 
             // Turn On RUN_TO_POSITION
-            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // reset the timeout time and start motion.
             runtime.reset();
-            leftDrive.setPower(Math.abs(speed));
-            rightDrive.setPower(Math.abs(speed));
+            frontLeft.setPower(Math.abs(speed));
+            frontRight.setPower(Math.abs(speed));
+            rearLeft.setPower(Math.abs(speed));
+            rearRight.setPower(Math.abs(speed));
 
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -281,29 +320,39 @@ public class AutoByEncoder extends LinearOpMode {
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
-                    (leftDrive.isBusy() && rightDrive.isBusy())) {
+                    (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearRight.isBusy()) {
+                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
+                    objectFlag = true;
+                }
 
                 // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d", newLeftTarget,  newRightTarget);
+                telemetry.addData("Running to",  " %7d :%7d", newFrontLeftTarget,  newFrontRightTarget);
                 telemetry.addData("Currently at",  " at %7d :%7d",
-                        leftDrive.getCurrentPosition(), rightDrive.getCurrentPosition());
+                        frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
                 telemetry.update();
             }
 
             // This is some test code that should open the purplePixelGripper to a random, untested, arbitrary position (10 degrees) -- Zachary and Ryan
-            while (opModeIsActive() && (runtime.seconds() < timeoutS) && !leftDrive.isBusy() && !rightDrive.isBusy()) {
-                openPurplePixelGripper(purplePixelGripper, 10);
-            }
+            // instead of droping the pixel here I've changed the code to return a boolean if the object is found.
+//            while (opModeIsActive() && (runtime.seconds() < timeoutS) && !leftDrive.isBusy() && !rightDrive.isBusy()) {
+//                openPurplePixelGripper(purplePixelGripper, 10);
+//            }
 
             // Stop all motion;
-            leftDrive.setPower(0);
-            rightDrive.setPower(0);
+            frontLeft.setPower(0);
+            frontRight.setPower(0);
+            rearLeft.setPower(0);
+            rearRight.setPower(0);
 
             // Turn off RUN_TO_POSITION
-            leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            sleep(250);   // optional pause after each move.
+//            sleep(250);   // optional pause after each move.  This can be handeled in the main code if needed.
         }
+    return objectFlag;
     }
+
 }
