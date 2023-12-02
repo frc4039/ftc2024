@@ -144,7 +144,7 @@ public class Teleop24 extends OpMode {
         boolean resetElevatorPivotButton = (gamepad2.left_stick_button);
 
         boolean openPurplePixelGripper = (gamepad2.right_stick_button);
-        boolean launchDrone = (gamepad2.right_stick_button);
+        boolean launchDrone = (gamepad2.left_stick_button);
 
      //   boolean  = (gamepad2.left_stick_y);
      //   boolean  = (gamepad2.right_stick_button);
@@ -237,7 +237,9 @@ public class Teleop24 extends OpMode {
           }
 
         if(launchDrone == true) {
-            droneLauncher.setPosition(0.1);
+            droneLauncher.setPosition(0.3);
+            telemetry.addData("Launch Drone","Launching");
+            telemetry.update();
         }
     }
 }

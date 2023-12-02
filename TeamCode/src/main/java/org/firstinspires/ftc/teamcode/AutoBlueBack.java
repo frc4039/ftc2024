@@ -32,14 +32,11 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital????????
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -67,8 +64,8 @@ import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital??????
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Drive", group="Robot")
-public class AutoByEncoder extends LinearOpMode {
+@Autonomous(name="2024: Auto Blue Back", group="Robot")
+public class AutoBlueBack extends LinearOpMode {
 
 
 
@@ -142,7 +139,10 @@ public class AutoByEncoder extends LinearOpMode {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         purplePixelGripper.setPosition(0);
-/*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        gripperLeft.setPosition(0.0);
+        gripperRight.setPosition(0.0);
+
+        /*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
         elevatorPivot.setTargetPosition(-10);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -159,41 +159,26 @@ public class AutoByEncoder extends LinearOpMode {
         stop();
 */
 
-            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(SEARCH_SPEED,12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+//            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
+        if (encoderStrafe(DRIVE_SPEED,28.0 + 12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             objectFound = true;
             objectLocation = Location.Second;
         }
-        encoderStrafe(DRIVE_SPEED,-12,5);  // Move back to center position
+        encoderStrafe(DRIVE_SPEED,-6,5);  // Move back to center position
         if (!objectFound){
             if(encoderDrive(SEARCH_SPEED,-12,5)){  // object found in position 2
                 purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
                 objectFound = true;
                 objectLocation = Location.Third;
+                telemetry.addData("Detected","Third Position");
             }
+            encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
         }
-        encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
         if (!objectFound){
-            encoderDrive(SEARCH_SPEED,12,5);
+            encoderDrive(SEARCH_SPEED,6,5);
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             objectLocation = Location.First;
-        }
-        encoderDrive(DRIVE_SPEED,-12,5); // move back to center position
-
-        encoderStrafe(DRIVE_SPEED,-24,5); //move back to center of first tile
-        encoderDrive(DRIVE_SPEED,3*24,10); // For starting on front stage
-//        encoderDrive(DRIVE_SPEED,24,5); //For starting on back stage
-        switch (objectLocation){
-            case First:
-                encoderStrafe(DRIVE_SPEED,24,5);
-                break;
-            case Second:
-                encoderStrafe(DRIVE_SPEED,28,5);
-                break;
-            default:
-                encoderStrafe(DRIVE_SPEED,32,5);
-                break;
         }
         //raise arm
         elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -201,11 +186,15 @@ public class AutoByEncoder extends LinearOpMode {
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        while (elevatorPivot.isBusy() && opModeIsActive());
-        // Or....   sleep(3000);
-
-        // move foward a bit
-        encoderDrive(SEARCH_SPEED,10,5);
+        switch(objectLocation){
+            case First:
+                encoderDrive(DRIVE_SPEED,32,5);
+                //drive 36
+                break;
+            default:
+                encoderDrive(DRIVE_SPEED,42,5);
+                break;
+        }
 
         //drop pixel
         gripperLeft.setPosition(0.25);
@@ -224,10 +213,10 @@ public class AutoByEncoder extends LinearOpMode {
 
         switch (objectLocation){
             case First:
-                encoderStrafe(DRIVE_SPEED,-20,5);
+                encoderStrafe(DRIVE_SPEED,-26,5);
                 break;
             case Second:
-                encoderStrafe(DRIVE_SPEED,-24,5);
+                encoderStrafe(DRIVE_SPEED,-26,5);
                 break;
             default:
                 encoderStrafe(DRIVE_SPEED,-26,5);
