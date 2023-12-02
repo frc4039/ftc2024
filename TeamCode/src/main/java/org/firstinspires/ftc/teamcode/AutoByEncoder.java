@@ -120,12 +120,18 @@ public class AutoByEncoder extends LinearOpMode {
         rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
         rearRight = hardwareMap.get(DcMotor.class, "rearRight");
 
+        elevatorPivot = hardwareMap.get(DcMotor.class, "elevatorPivot");
+
+
         purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
+        gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
+        gripperRight = hardwareMap.get(Servo.class, "gripperRight");
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
+        purplePixelGripper.setDirection(Servo.Direction.REVERSE);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -133,6 +139,10 @@ public class AutoByEncoder extends LinearOpMode {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         purplePixelGripper.setPosition(0);
+        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevatorPivot.setPower(elevatorPivotUpSpeed);
+        elevatorPivot.setTargetPosition(-10);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -173,13 +183,13 @@ public class AutoByEncoder extends LinearOpMode {
 //        encoderDrive(DRIVE_SPEED,24,5); //For starting on back stage
         switch (objectLocation){
             case First:
-                encoderStrafe(DRIVE_SPEED,5,5);
+                encoderStrafe(DRIVE_SPEED,24,5);
                 break;
             case Second:
-                encoderStrafe(DRIVE_SPEED,10,5);
+                encoderStrafe(DRIVE_SPEED,28,5);
                 break;
             default:
-                encoderStrafe(DRIVE_SPEED,15,5);
+                encoderStrafe(DRIVE_SPEED,32,5);
                 break;
         }
         //raise arm
@@ -192,16 +202,16 @@ public class AutoByEncoder extends LinearOpMode {
         // Or....   sleep(3000);
 
         // move foward a bit
-        encoderDrive(SEARCH_SPEED,5,5);
+        encoderDrive(SEARCH_SPEED,10,5);
 
         //drop pixel
         gripperLeft.setPosition(0.25);
         gripperRight.setPosition(0.25);
         telemetry.addData("grip opening", gripperRight.getPosition());
         telemetry.update();
-
+        sleep(500);
         // move back
-        encoderDrive(DRIVE_SPEED,-5,5);
+        encoderDrive(DRIVE_SPEED,-10,5);
 
         // lower arm
         elevatorPivot.setPower(0);
@@ -211,16 +221,16 @@ public class AutoByEncoder extends LinearOpMode {
 
         switch (objectLocation){
             case First:
-                encoderStrafe(DRIVE_SPEED,-5,5);
+                encoderStrafe(DRIVE_SPEED,-20,5);
                 break;
             case Second:
-                encoderStrafe(DRIVE_SPEED,-10,5);
+                encoderStrafe(DRIVE_SPEED,-24,5);
                 break;
             default:
-                encoderStrafe(DRIVE_SPEED,-15,5);
+                encoderStrafe(DRIVE_SPEED,-26,5);
                 break;
         }
-        encoderDrive(DRIVE_SPEED,5,5);
+        encoderDrive(DRIVE_SPEED,10,5);
 
 
         telemetry.addData("Path", "Complete");
