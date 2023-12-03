@@ -32,14 +32,11 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital????????
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -67,8 +64,8 @@ import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital??????
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Blue Front", group="Robot")
-public class AutoByEncoder extends LinearOpMode {
+@Autonomous(name="2024: Auto Red Front", group="Robot")
+public class AutoRedFront extends LinearOpMode {
 
 
 
@@ -149,23 +146,14 @@ public class AutoByEncoder extends LinearOpMode {
 */
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
-/*
-        while(opModeIsActive()) {
-            telemetry.addData("LeftBeam", LeftBeam.isPressed());
-            telemetry.addData("RightBeam", RightBeam.isPressed());
-            telemetry.addData("RearBeam", RearBeam .isPressed());
-            telemetry.update();
-        }
-        stop();
-*/
 
-            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(SEARCH_SPEED,12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+            encoderStrafe(DRIVE_SPEED, -28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
+        if (encoderStrafe(SEARCH_SPEED,-12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             objectFound = true;
             objectLocation = Location.Second;
         }
-        encoderStrafe(DRIVE_SPEED,-10,5);  // Move back to center position
+        encoderStrafe(DRIVE_SPEED,10,5);  // Move back to center position
         if (!objectFound){
             if(encoderDrive(SEARCH_SPEED,-10,5)){  // object found in position 2
                 purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
