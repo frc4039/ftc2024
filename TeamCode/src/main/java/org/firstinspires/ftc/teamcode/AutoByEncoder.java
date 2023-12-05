@@ -108,6 +108,7 @@ public class AutoByEncoder extends LinearOpMode {
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
     static final double     CENTER_GRIPPER_OPEN = 0.1;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
+    private final double DISTANCE_TO_CENTER = 28.0;  // FIRST MOVE
 
     @Override
     public void runOpMode() {
@@ -142,6 +143,9 @@ public class AutoByEncoder extends LinearOpMode {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         purplePixelGripper.setPosition(0);
+
+        gripperLeft.setPosition(0);
+        gripperRight.setPosition(0);
 /*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
         elevatorPivot.setTargetPosition(-10);
@@ -159,7 +163,7 @@ public class AutoByEncoder extends LinearOpMode {
         stop();
 */
 
-            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
+            encoderStrafe(DRIVE_SPEED, DISTANCE_TO_CENTER, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(SEARCH_SPEED,12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             objectFound = true;

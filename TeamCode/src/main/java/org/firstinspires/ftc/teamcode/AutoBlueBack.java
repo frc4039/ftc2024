@@ -105,6 +105,8 @@ public class AutoBlueBack extends LinearOpMode {
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
     static final double     CENTER_GRIPPER_OPEN = 0.1;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
+    private final double DISTANCE_TO_CENTER = 27.0;
+    private final double DISTANCE_TO_BACKDROP = 30.0;
 
     @Override
     public void runOpMode() {
@@ -139,8 +141,9 @@ public class AutoBlueBack extends LinearOpMode {
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         purplePixelGripper.setPosition(0);
-        gripperLeft.setPosition(0.0);
-        gripperRight.setPosition(0.0);
+
+        gripperLeft.setPosition(0);
+        gripperRight.setPosition(0);
 
         /*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
@@ -159,13 +162,13 @@ public class AutoBlueBack extends LinearOpMode {
         stop();
 */
 
-            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
+            encoderStrafe(DRIVE_SPEED, DISTANCE_TO_CENTER, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(SEARCH_SPEED, 12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             objectFound = true;
             objectLocation = Location.Second;
         }
-        encoderStrafe(DRIVE_SPEED,-10,5);  // Move back to center position
+        encoderStrafe(DRIVE_SPEED,-8,5);  // Move back to center position
         if (!objectFound){
             if(encoderDrive(SEARCH_SPEED,-12,5)){  // object found in position 2
                 purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
@@ -176,7 +179,7 @@ public class AutoBlueBack extends LinearOpMode {
             encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
         }
         if (!objectFound){
-            encoderDrive(SEARCH_SPEED,6,5);
+            encoderDrive(SEARCH_SPEED,8,5);
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             objectLocation = Location.First;
         }
@@ -188,11 +191,11 @@ public class AutoBlueBack extends LinearOpMode {
 
         switch(objectLocation){
             case First:
-                encoderDrive(DRIVE_SPEED,32,5);
+                encoderDrive(DRIVE_SPEED,DISTANCE_TO_BACKDROP + 2,5);
                 //drive 36
                 break;
             default:
-                encoderDrive(DRIVE_SPEED,42,5);
+                encoderDrive(DRIVE_SPEED,DISTANCE_TO_BACKDROP + 10,5);
                 break;
         }
 
@@ -211,7 +214,8 @@ public class AutoBlueBack extends LinearOpMode {
 
         sleep(500);
 
-        switch (objectLocation){
+        encoderStrafe(DRIVE_SPEED,-1*(DISTANCE_TO_CENTER - 2.0),5);
+     /*   switch (objectLocation){
             case First:
                 encoderStrafe(DRIVE_SPEED,-26,5);
                 break;
@@ -221,7 +225,8 @@ public class AutoBlueBack extends LinearOpMode {
             default:
                 encoderStrafe(DRIVE_SPEED,-26,5);
                 break;
-        }
+        } */
+
         encoderDrive(DRIVE_SPEED,10,5);
 
 
