@@ -134,7 +134,6 @@ public class AutoBlueBack extends LinearOpMode {
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
 
-
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -144,6 +143,8 @@ public class AutoBlueBack extends LinearOpMode {
 
         gripperLeft.setPosition(0);
         gripperRight.setPosition(0);
+
+        Robot2024 BOB = new Robot2024(this);
 
         /*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);

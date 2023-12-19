@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -93,7 +94,7 @@ public class TestBeams extends LinearOpMode {
     private TouchSensor RearBeam = null;
     // runtime used for timeout during moves in case an obstetrical is encountered.
     private ElapsedTime     runtime = new ElapsedTime();
-
+    private ColorSensor color;
 
     // Counts per inch are based on field measurements
 
@@ -123,6 +124,7 @@ public class TestBeams extends LinearOpMode {
         purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
+        color = hardwareMap.get(ColorSensor.class, "Color");
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -150,10 +152,50 @@ public class TestBeams extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        Log ColorLog = new Log("Colorlog",false);
+        ColorLog.addData("Position");
+        ColorLog.addData("Red");
+        ColorLog.addData("Blue");
+        ColorLog.addData("Green");
+        ColorLog.addData("Alpha");
+
+        frontLeft.setPower(SEARCH_SPEED);
+        frontRight.setPower(SEARCH_SPEED);
+        rearLeft.setPower(SEARCH_SPEED);
+        rearRight.setPower(SEARCH_SPEED);
+        int lastPosition = 100;  // just set to a high number to force the first read
+        for (int i=0;i<(4*DRIVE_COUNTS_PER_INCH)&&opModeIsActive(); i++){
+            int currPosition = frontLeft.getCurrentPosition();
+            if (currPosition != lastPosition){
+                lastPosition = currPosition;
+                ColorLog.addData(currPosition);
+                ColorLog.addData(color.red());
+                ColorLog.addData(color.blue());
+                ColorLog.addData(color.green());
+                ColorLog.addData(color.alpha());
+                ColorLog.update();
+            }
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
+
+        ColorLog.close();
+
         while(opModeIsActive()) {
             telemetry.addData("LeftBeam", LeftBeam.isPressed());
             telemetry.addData("RightBeam", RightBeam.isPressed());
             telemetry.addData("RearBeam", RearBeam .isPressed());
+            telemetry.addData("Red", color.red());
+            telemetry.addData("Green", color.green());
+            telemetry.addData("Blue", color.blue());
             telemetry.update();
         }
         stop();
