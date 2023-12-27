@@ -15,19 +15,19 @@ package org.firstinspires.ftc.teamcode;
 public class Log {
     private static final String BASE_FOLDER_NAME = "FIRST";
     private Writer fileWriter;
-    private String line;
+    private String line = "";
     private boolean logTime;
     private long startTime;
     private boolean disabled = false;
     Log(String filename, boolean logTime) {
         if (logTime) startTime = System.nanoTime();
         this.logTime = logTime;
-        String directoryPath = Environment.getExternalStorageDirectory().getPath()+"/"+BASE_FOLDER_NAME;
-        File directory = new File(directoryPath);
+//        String directoryPath = Environment.getExternalStorageDirectory().getPath()+"log.csv";
+//        File directory = new File(directoryPath);
         //noinspection ResultOfMethodCallIgnored
-        directory.mkdir();
+//        directory.mkdir();
         try {
-            fileWriter = new FileWriter(directoryPath+"/"+filename+".csv");
+            fileWriter = new FileWriter("log.csv");
         } catch (IOException e) {
             e.printStackTrace();
         }

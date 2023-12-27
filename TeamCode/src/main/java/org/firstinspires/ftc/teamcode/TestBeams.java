@@ -39,6 +39,8 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
  * The code is structured as a LinearOpMode
@@ -101,7 +103,7 @@ public class TestBeams extends LinearOpMode {
     static final double     DRIVE_COUNTS_PER_INCH         = 51;
     static final double     STRAFE_COUNTS_PER_INCH        = 51;
     static final double     DRIVE_SPEED             = 0.4039;
-    static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
+    static final double     SEARCH_SPEED = 0.1;  // Just in case we need to reduce the speed when searching for an object.
     static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
     static final double     CENTER_GRIPPER_OPEN = 0.1;
@@ -154,17 +156,17 @@ public class TestBeams extends LinearOpMode {
 
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        Log ColorLog = new Log("Colorlog",false);
-        ColorLog.addData("Position");
-        ColorLog.addData("Red");
-        ColorLog.addData("Blue");
-        ColorLog.addData("Green");
-        ColorLog.addData("Alpha");
-
+  //      Log ColorLog = new Log("Colorlog",false);
+ //       ColorLog.addData("Position");
+ //       ColorLog.addData("Red");
+ //       ColorLog.addData("Blue");
+ //       ColorLog.addData("Green");
+ //       ColorLog.addData("Alpha");
+        color.enableLed(false);
         frontLeft.setPower(SEARCH_SPEED);
         frontRight.setPower(SEARCH_SPEED);
         rearLeft.setPower(SEARCH_SPEED);
@@ -174,12 +176,12 @@ public class TestBeams extends LinearOpMode {
             int currPosition = frontLeft.getCurrentPosition();
             if (currPosition != lastPosition){
                 lastPosition = currPosition;
-                ColorLog.addData(currPosition);
-                ColorLog.addData(color.red());
-                ColorLog.addData(color.blue());
-                ColorLog.addData(color.green());
-                ColorLog.addData(color.alpha());
-                ColorLog.update();
+                telemetry.addData("Pos",currPosition);
+                telemetry.addData("red ",color.red());
+                telemetry.addData("blue", color.blue());
+                telemetry.addData("green", color.green());
+                telemetry.addData("alpha",color.alpha());
+                telemetry.update();
             }
         }
         frontLeft.setPower(0);
@@ -187,7 +189,7 @@ public class TestBeams extends LinearOpMode {
         rearLeft.setPower(0);
         rearRight.setPower(0);
 
-        ColorLog.close();
+//        ColorLog.close();
 
         while(opModeIsActive()) {
             telemetry.addData("LeftBeam", LeftBeam.isPressed());
