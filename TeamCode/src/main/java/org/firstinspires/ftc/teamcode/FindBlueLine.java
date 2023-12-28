@@ -18,11 +18,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.util.RobotLog;
 
-@Autonomous(name="2024: Test Colour", group="Robot")
+@Autonomous(name="2024: Find Blue Line", group="Robot")
 
 
 
-public class TestColorSensor extends LinearOpMode {
+public class FindBlueLine extends LinearOpMode {
     private ColorSensor color;
     private DcMotor MotorLeft;
     private DcMotor MotorRight;
@@ -58,40 +58,62 @@ public class TestColorSensor extends LinearOpMode {
         }
 
  */
-         MotorRight.setPower(.2);
-         MotorLeft.setPower(.2);
+        MotorRight.setPower(.2);
+        MotorLeft.setPower(.2);
 
-         int[] redsearch = new int[100];
+        int[] searchForward = new int[100];
+        int[] searchBackwards = new int[100];
 
-         int interval = 10;
-         int CurrPos = 0;
-         int PrevPos = MotorLeft.getCurrentPosition() - interval;
-         for (int i=0;(i<100) && opModeIsActive();i++) {
-             while (((CurrPos = MotorLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+        int interval = 10;
+        int CurrPos = 0;
+        int PrevPos = MotorLeft.getCurrentPosition() - interval;
+        for (int i=0;(i<100) && opModeIsActive();i++) {
+            while (((CurrPos = MotorLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
 //             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
-             redsearch[i] = color.red();
-             PrevPos = CurrPos;
+            searchForward[i] = color.blue();
+            PrevPos = CurrPos;
         }
+        MotorRight.setPower(-.2);
+        MotorLeft.setPower(-.2);
+        for (int i=99; (i>=0)&& opModeIsActive();i--) {
 
+            while (((CurrPos = MotorLeft.getCurrentPosition()) > i * interval) && opModeIsActive());
+            searchBackwards[i] = color.blue();
+        }
         MotorRight.setPower(0.0);
         MotorLeft.setPower(0.0);
 
-         int maxred = 0;
-         int maxloc = 50*interval;
-         for (int i = 0; i< 100; i++){
-             if( redsearch[i] > maxred){
-                 maxred = redsearch[i];
-                 maxloc = i*interval;
-             }
-         }
+        int maxfoward = 0;
+        int maxreverse = 0;
+        int maxlocfoward = 50*interval;
+        int maxlocreverse = 50*interval;
+        for (int i = 0; i< 100; i++){
+            if( searchForward[i] > maxfoward){
+                maxfoward = searchForward[i];
+                maxlocfoward = i*interval;
+            }
+            if (searchBackwards[i] > maxreverse){
+                maxreverse = searchBackwards[i];
+                maxlocreverse = i*interval;
+            }
+        }
 
-         MotorLeft.setTargetPosition(maxloc);
-         MotorRight.setTargetPosition(maxloc);
-         MotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-         MotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-         MotorLeft.setPower(.5);
-         MotorRight.setPower(.5);
-         while(MotorRight.isBusy()&&opModeIsActive());
+        int maxloc = (maxlocfoward+maxlocreverse)/2;
+
+        MotorLeft.setTargetPosition(maxloc);
+        MotorRight.setTargetPosition(maxloc);
+        MotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        MotorLeft.setPower(.2);
+        MotorRight.setPower(.2);
+        while(MotorRight.isBusy()&&opModeIsActive());
+        RobotLog.d("Color: Max Foward Location " + Integer.toString(maxlocfoward) + " Reverse Location " + Integer.toString(maxlocreverse) + " Average " + Integer.toString(maxloc) );
+        RobotLog.d("Color: Locatoin, Foward, Reverse");
+
+        for (int i=0;i<100;i++) {
+            RobotLog.d("Color: "+Integer.toString(i*interval) +" ," +Integer.toString(searchForward[i]) +" ,"+ Integer.toString(searchBackwards[i]));
+        }
+
     }
 
-    }
+}
