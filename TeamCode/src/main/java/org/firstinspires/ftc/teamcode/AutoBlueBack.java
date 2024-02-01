@@ -38,6 +38,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import java.util.List;
+
 
 
 /*
@@ -69,6 +76,16 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 @Autonomous(name="2024: Auto Blue Back", group="Robot")
 public class AutoBlueBack extends LinearOpMode {
 
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+
+    /**
+     * The variable to store our instance of the AprilTag processor.
+     */
+    private AprilTagProcessor aprilTag;
+    /**
+     * The variable to store our instance of the vision portal.
+     */
+    private VisionPortal visionPortal;
 
 
     private final int pivotHome = 0;
@@ -114,6 +131,10 @@ public class AutoBlueBack extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        int TagTarget = 0;
+        double DriveMove;
+        double StrafeMove;
+
         RightBeam =  hardwareMap.get(TouchSensor.class, "Right");
         LeftBeam = hardwareMap.get(TouchSensor.class,"Left");
         RearBeam = hardwareMap.get(TouchSensor.class, "Rear");
@@ -151,12 +172,17 @@ public class AutoBlueBack extends LinearOpMode {
         gripperLeft.setPosition(0);
         gripperRight.setPosition(0);
 
+
+
         /*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
         elevatorPivot.setTargetPosition(-10);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 */
         // Wait for the game to start (driver presses PLAY)
+
+        initAprilTag();
+
         waitForStart();
 /*
         while(opModeIsActive()) {
@@ -205,23 +231,57 @@ public class AutoBlueBack extends LinearOpMode {
             FindBlueLineDrive();
             objectLocation = Location.Third;
         }
+        switch (objectLocation){
+            case First:
+                TagTarget = 1;
+                break;
+            case Second:
+                TagTarget = 2;
+                break;
+            case Third:
+                TagTarget = 3;
+                break;
+            default:
+                TagTarget = 2;
+                break;
+        }
+
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        DriveMove = 0.0;
+        StrafeMove = 0.0;
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.id == TagTarget){
+                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                telemetry.update();
+                DriveMove = detection.ftcPose.y - 12.0;
+                StrafeMove = detection.ftcPose.x;
+            }
+        }   // end for() loop
+        encoderDrive(DRIVE_SPEED,20,5);
+        if (DriveMove < 0.1){
+            currentDetections = aprilTag.getDetections();
+            DriveMove = 30.0;
+            StrafeMove = 0.0;
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == TagTarget){
+                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                    telemetry.update();
+                    DriveMove = detection.ftcPose.y - 12.0;
+                    StrafeMove = detection.ftcPose.x;
+                }
+            }   // end for() loop
+        }
         //raise arm
         elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        switch(objectLocation){
-            case First:
-                encoderDrive(DRIVE_SPEED,DISTANCE_TO_BACKDROP + 2,5);
-                //drive 36
-                break;
-            case Third:
-                encoderDrive(DRIVE_SPEED, DISTANCE_TO_BACKDROP + 11, 5);
-            default:
-                encoderDrive(DRIVE_SPEED,DISTANCE_TO_BACKDROP + 10,5);
-                break;
-        }
+        encoderDrive(DRIVE_SPEED,DriveMove,5);
+        encoderStrafe(DRIVE_SPEED,StrafeMove,5);
+
+        elevatorPivot.setPower(0);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //drop pixel
         gripperLeft.setPosition(0.25);
@@ -233,8 +293,6 @@ public class AutoBlueBack extends LinearOpMode {
         encoderDrive(DRIVE_SPEED,-10,5);
 
         // lower arm
-        elevatorPivot.setPower(0);
-        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         sleep(500);
 
@@ -627,5 +685,66 @@ public class AutoBlueBack extends LinearOpMode {
         }
     return objectFlag;
     }
+    private void initAprilTag() {
+
+        // Create the AprilTag processor.
+        aprilTag = new AprilTagProcessor.Builder()
+
+                // The following default settings are available to un-comment and edit as needed.
+                //.setDrawAxes(false)
+                //.setDrawCubeProjection(false)
+                //.setDrawTagOutline(true)
+                //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+                //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+
+                // == CAMERA CALIBRATION ==
+                // If you do not manually specify calibration parameters, the SDK will attempt
+                // to load a predefined calibration for your camera.
+                //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
+                // ... these parameters are fx, fy, cx, cy.
+
+                .build();
+
+        // Adjust Image Decimation to trade-off detection-range for detection-rate.
+        // eg: Some typical detection data using a Logitech C920 WebCam
+        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
+        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
+        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
+        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
+        // Note: Decimation can be changed on-the-fly to adapt during a match.
+        //aprilTag.setDecimation(3);
+
+        // Create the vision portal by using a builder.
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        // Set the camera (webcam vs. built-in RC phone camera).
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+
+        // Choose a camera resolution. Not all cameras support all resolutions.
+        //builder.setCameraResolution(new Size(640, 480));
+
+        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
+        //builder.enableLiveView(true);
+
+        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
+        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+
+        // Choose whether or not LiveView stops if no processors are enabled.
+        // If set "true", monitor shows solid orange screen if no processors enabled.
+        // If set "false", monitor shows camera view without annotations.
+        //builder.setAutoStopLiveView(false);
+
+        // Set and enable the processor.
+        builder.addProcessor(aprilTag);
+
+        // Build the Vision Portal, using the above settings.
+        visionPortal = builder.build();
+
+        // Disable or re-enable the aprilTag processor at any time.
+        //visionPortal.setProcessorEnabled(aprilTag, true);
+
+    }   // end method initAprilTag()
 
 }
+
