@@ -37,6 +37,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -74,6 +76,8 @@ public class AutoBlueBack extends LinearOpMode {
     private boolean objectFound = false;
     enum Location{First,Second, Third}
     private Location objectLocation = null;
+    private ColorSensor color;
+
 
 
     // Declare Motors.  All but climbing motor is required in auto
@@ -126,6 +130,8 @@ public class AutoBlueBack extends LinearOpMode {
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
 
+        color = hardwareMap.get(ColorSensor.class, "Color");
+
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -161,14 +167,15 @@ public class AutoBlueBack extends LinearOpMode {
         }
         stop();
 */
-            // Old code in circular brackets from first if: encoderStrafe(SEARCH_SPEED, 6.0,5)
+        // Old code in circular brackets from first if: encoderStrafe(SEARCH_SPEED, 6.0,5)
             encoderStrafe(DRIVE_SPEED, 0.5, 5);
             sleep(100);
             encoderDrive(DRIVE_SPEED, 8, 5);
             sleep(250);
               // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(DRIVE_SPEED, DISTANCE_TO_CENTER + 4, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
-            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+//            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+            FindBlueLineDrive();
             objectFound = true;
             objectLocation = Location.First;
         }
@@ -177,7 +184,8 @@ public class AutoBlueBack extends LinearOpMode {
             encoderStrafe(DRIVE_SPEED, 8, 5);
             sleep(250);
             if(encoderDrive(SEARCH_SPEED,-8,5)){  // object found in position 2 // inches is formerly -12
-                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+                FindBlueLineStrafe();
+//                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
                 objectFound = true;
                 objectLocation = Location.Second;
                 telemetry.addData("Detected","Second Position");
@@ -191,9 +199,10 @@ public class AutoBlueBack extends LinearOpMode {
         }
         if (!objectFound){
             encoderStrafe(DRIVE_SPEED,-8.5,5);
-            sleep(500);
+//            sleep(500);
             encoderDrive(SEARCH_SPEED,-12.5,5);
-            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+//            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+            FindBlueLineDrive();
             objectLocation = Location.Third;
         }
         //raise arm
@@ -259,7 +268,223 @@ public class AutoBlueBack extends LinearOpMode {
      *  3) Driver stops the OpMode running.
      */
 
+    public void FindBlueLineStrafe (){
 
+        final int interval = 5;
+        final int NPoints = 100;
+        final double RunPower = 0.1;
+        final double SearchPower = 0.07;
+
+        int[] search = new int[NPoints];
+        int CurrPos = 0;
+
+
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval*(NPoints/2));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval*(NPoints/2));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() + interval*(NPoints/2));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() + interval*(NPoints/2));
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setPower(SearchPower);
+        frontRight.setPower(SearchPower);
+        rearLeft.setPower(-1*SearchPower);
+        rearRight.setPower(-1*SearchPower);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        for (int i=0;(i<NPoints) && opModeIsActive();i++) {
+            while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+//             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
+            search[i] = color.blue();
+        }
+
+        frontLeft.setPower(0.0);
+        frontRight.setPower(0.0);
+        rearLeft.setPower(0.0);
+        rearRight.setPower(0.0);
+
+        int maxblue = 0;
+        int maxloc = 0;
+        for (int i = 0; i< 100; i++){
+            if( search[i] > maxblue){
+                maxblue = search[i];
+                maxloc = i*interval;
+            }
+        }
+        frontLeft.setTargetPosition(maxloc);
+        frontRight.setTargetPosition(maxloc);
+        rearRight.setTargetPosition(-1*maxloc);
+        rearLeft.setTargetPosition(-1*maxloc);
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        sleep(100);
+        purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+/*        sleep(100);
+
+        frontLeft.setTargetPosition(interval*NPoints);
+        frontRight.setTargetPosition(interval*NPoints);
+        rearRight.setTargetPosition(interval*NPoints);
+        rearLeft.setTargetPosition(interval*NPoints);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
+*/
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+    }
+
+    public void FindBlueLineDrive (){
+
+        final int interval = 5;
+        final int NPoints = 100;
+        final double RunPower = 0.1;
+        final double SearchPower = 0.07;
+
+        int[] search = new int[NPoints];
+        int CurrPos = 0;
+
+
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval*(NPoints/2));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval*(NPoints/2));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() - interval*(NPoints/2));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() - interval*(NPoints/2));
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+                telemetry.addData("Move Operation","Complete");
+            }
+
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setPower(SearchPower);
+        frontRight.setPower(SearchPower);
+        rearLeft.setPower(SearchPower);
+        rearRight.setPower(SearchPower);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        for (int i=0;(i<NPoints) && opModeIsActive();i++) {
+            while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+//             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
+            search[i] = color.blue();
+        }
+
+        frontLeft.setPower(0.0);
+        frontRight.setPower(0.0);
+        rearLeft.setPower(0.0);
+        rearRight.setPower(0.0);
+
+        int maxblue = 0;
+        int maxloc = 0;
+        for (int i = 0; i< 100; i++){
+            if( search[i] > maxblue){
+                maxblue = search[i];
+                maxloc = i*interval;
+            }
+        }
+        frontLeft.setTargetPosition(maxloc);
+        frontRight.setTargetPosition(maxloc);
+        rearRight.setTargetPosition(maxloc);
+        rearLeft.setTargetPosition(maxloc);
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        sleep(100);
+        purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+        sleep(100);
+
+        frontLeft.setTargetPosition(interval*NPoints);
+        frontRight.setTargetPosition(interval*NPoints);
+        rearRight.setTargetPosition(interval*NPoints);
+        rearLeft.setTargetPosition(interval*NPoints);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+    }
     public boolean encoderStrafe(double speed,
                               double inches,
                               double timeoutS){
