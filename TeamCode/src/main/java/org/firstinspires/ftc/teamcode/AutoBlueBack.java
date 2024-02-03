@@ -229,7 +229,8 @@ public class AutoBlueBack extends LinearOpMode {
         }
         if (!objectFound){
             encoderStrafe(DRIVE_SPEED,-10.5,5);
-//            sleep(500);
+//            sleep(500);ii
+
             encoderDrive(SEARCH_SPEED,-12.5,5);
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             FindBlueLineDrive();

@@ -158,9 +158,10 @@ public class Teleop24 extends OpMode {
 
         //slightly less janky math that could work
 
-        drive = drive * Math.abs(drive);
-        strafe = strafe * Math.abs(strafe);
-        turn = turn * Math.abs(turn);
+        drive = Math.pow(drive, 3);
+        strafe = Math.pow(strafe, 3);
+        turn = Math.pow(turn, 3);
+        //changed to cubic instead of quadratic
 
 
         // Allows for multiple functions to happen at once (eg. drive & strafe, turn & drive, etc)
