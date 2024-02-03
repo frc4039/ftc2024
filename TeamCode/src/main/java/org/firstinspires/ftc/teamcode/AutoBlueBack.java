@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -120,8 +121,8 @@ public class AutoBlueBack extends LinearOpMode {
 
     static final double     DRIVE_COUNTS_PER_INCH         = 51;
     static final double     STRAFE_COUNTS_PER_INCH        = 51;
-    static final double     DRIVE_SPEED             = 0.4039;
-    static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
+    static final double     DRIVE_SPEED             = 0.5;
+    static final double     SEARCH_SPEED = 0.3;  // Just in case we need to reduce the speed when searching for an object.
     static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
     static final double     CENTER_GRIPPER_OPEN = 0.1;
@@ -194,16 +195,19 @@ public class AutoBlueBack extends LinearOpMode {
         stop();
 */
         // Old code in circular brackets from first if: encoderStrafe(SEARCH_SPEED, 6.0,5)
-            encoderStrafe(DRIVE_SPEED, 0.5, 5);
-            sleep(100);
+
+//            MoveToAprilTag(2);
+//            stop();
+
+        encoderStrafe(DRIVE_SPEED, 0.5, 5);
             encoderDrive(DRIVE_SPEED, 8, 5);
-            sleep(250);
               // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(DRIVE_SPEED, DISTANCE_TO_CENTER + 4, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+        if (encoderStrafe(SEARCH_SPEED, DISTANCE_TO_CENTER+4, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             FindBlueLineDrive();
             objectFound = true;
             objectLocation = Location.First;
+//            encoderDrive(DRIVE_SPEED,8,5);
         }
 // Move back to center position
         if (!objectFound){
@@ -215,21 +219,19 @@ public class AutoBlueBack extends LinearOpMode {
                 objectFound = true;
                 objectLocation = Location.Second;
                 telemetry.addData("Detected","Second Position");
-                encoderDrive(DRIVE_SPEED, 10, 5);
-                sleep(250);
                 encoderStrafe(DRIVE_SPEED, -9, 5);
-                sleep(250);
-                encoderDrive(DRIVE_SPEED, -10, 5);
+                encoderDrive(DRIVE_SPEED, 14, 5);
             }
  // Move back to center position
         }
         if (!objectFound){
-            encoderStrafe(DRIVE_SPEED,-8.5,5);
+            encoderStrafe(DRIVE_SPEED,-9,5);
 //            sleep(500);
             encoderDrive(SEARCH_SPEED,-12.5,5);
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             FindBlueLineDrive();
             objectLocation = Location.Third;
+            encoderDrive(DRIVE_SPEED,24,5);
         }
         switch (objectLocation){
             case First:
@@ -246,39 +248,14 @@ public class AutoBlueBack extends LinearOpMode {
                 break;
         }
 
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        DriveMove = 0.0;
-        StrafeMove = 0.0;
-        for (AprilTagDetection detection : currentDetections) {
-            if (detection.id == TagTarget){
-                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                telemetry.update();
-                DriveMove = detection.ftcPose.y - 12.0;
-                StrafeMove = detection.ftcPose.x;
-            }
-        }   // end for() loop
-        encoderDrive(DRIVE_SPEED,20,5);
-        if (DriveMove < 0.1){
-            currentDetections = aprilTag.getDetections();
-            DriveMove = 30.0;
-            StrafeMove = 0.0;
-            for (AprilTagDetection detection : currentDetections) {
-                if (detection.id == TagTarget){
-                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                    telemetry.update();
-                    DriveMove = detection.ftcPose.y - 12.0;
-                    StrafeMove = detection.ftcPose.x;
-                }
-            }   // end for() loop
-        }
-        //raise arm
         elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        encoderDrive(DRIVE_SPEED,DriveMove,5);
-        encoderStrafe(DRIVE_SPEED,StrafeMove,5);
+        MoveToAprilTag(TagTarget);
+
+        encoderDrive(SEARCH_SPEED,2,5);
 
         elevatorPivot.setPower(0);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -286,34 +263,21 @@ public class AutoBlueBack extends LinearOpMode {
         //drop pixel
         gripperLeft.setPosition(0.25);
         gripperRight.setPosition(0.25);
-        telemetry.addData("grip opening", gripperRight.getPosition());
-        telemetry.update();
-        sleep(500);
+//        telemetry.addData("grip opening", gripperRight.getPosition());
+//        telemetry.update();
         // move back
-        encoderDrive(DRIVE_SPEED,-10,5);
 
-        // lower arm
-
-        sleep(500);
-
-        encoderStrafe(DRIVE_SPEED,-1*(DISTANCE_TO_CENTER - 2.0),5);
-     /*   switch (objectLocation){
-            case First:
-                encoderStrafe(DRIVE_SPEED,-26,5);
-                break;
-            case Second:
-                encoderStrafe(DRIVE_SPEED,-26,5);
-                break;
-            default:
-                encoderStrafe(DRIVE_SPEED,-26,5);
-                break;
-        } */
-
-        encoderDrive(DRIVE_SPEED,10,5);
+        encoderDrive(SEARCH_SPEED,-5,5);
 
 
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
+
+        encoderStrafe(DRIVE_SPEED,-1*(16 +(TagTarget -1)*4),5);
+
+        encoderDrive(DRIVE_SPEED,5,5);
+
+
+//        telemetry.addData("Path", "Complete");
+//        telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
     }
 
@@ -326,6 +290,81 @@ public class AutoBlueBack extends LinearOpMode {
      *  3) Driver stops the OpMode running.
      */
 
+    public boolean MoveToAprilTag(int TagLocation){
+
+        double drive = 0.0;
+        double strafe = 0.0;
+        boolean notInPosition = true;
+        double maxSpeed = 0.2;
+
+        double targetbearing = 0.0;
+        double targetrange = 12.0;
+        double currentRange = 0.0;
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        while (notInPosition && opModeIsActive()) {
+
+            boolean TargetTagFound = false;
+            boolean TagFound = false;
+
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == TagLocation) {
+                    TagFound = true;
+                    TargetTagFound = true;
+                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                    telemetry.addLine(String.format("\n==== %f range %f bearing",detection.ftcPose.range,detection.ftcPose.bearing));
+                    telemetry.update();
+                    if (Math.abs(detection.ftcPose.bearing) > 5){
+                        strafe = -1.0 * Math.signum(detection.ftcPose.bearing);
+                        drive = 0.0;
+                    }
+                    else {
+                        drive = 1.0;
+                        strafe = 0.0;
+                    }
+                    currentRange = detection.ftcPose.range;
+/*
+                    drive = Math.cos(detection.ftcPose.bearing / 180 * 3.1415);
+                    strafe = -1 * Math.sin(detection.ftcPose.bearing / 180 *3.1415);
+
+ */
+                }
+                else if (TargetTagFound == false) {
+                    drive = 0.0;
+                    strafe = 0.0;
+
+                    switch (detection.id) {
+                        case 1: // 4 for red
+                            break;
+                        case 2:  // 5 for red
+                            break;
+                        case 3:  //6 for red
+                            break;
+                    }
+                }
+            }   // end for() loop
+            frontLeft.setPower(maxSpeed*(drive - strafe ));
+            frontRight.setPower(maxSpeed*(drive - strafe ));
+            rearLeft.setPower(maxSpeed*(drive + strafe ));
+            rearRight.setPower(maxSpeed*(drive + strafe ));
+
+            if (currentRange < targetrange){
+                frontLeft.setPower(0.0);
+                frontRight.setPower(0.0);
+                rearLeft.setPower(0.0);
+                rearRight.setPower(0.0);
+                notInPosition = false;
+            }
+            sleep(10);
+        }
+        return true;
+    }
     public void FindBlueLineStrafe (){
 
         final int interval = 5;
@@ -439,8 +478,8 @@ public class AutoBlueBack extends LinearOpMode {
 
         final int interval = 5;
         final int NPoints = 100;
-        final double RunPower = 0.1;
-        final double SearchPower = 0.07;
+        final double RunPower = 0.3;
+        final double SearchPower = 0.1;
 
         int[] search = new int[NPoints];
         int CurrPos = 0;
