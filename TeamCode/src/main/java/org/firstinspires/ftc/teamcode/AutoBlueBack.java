@@ -203,7 +203,7 @@ public class AutoBlueBack extends LinearOpMode {
 //            stop();
 
         encoderStrafe(DRIVE_SPEED, 1, 5);
-            encoderDrive(DRIVE_SPEED, 7.5, 5);
+        encoderDrive(DRIVE_SPEED, 7.5, 5);
               // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
         if (encoderStrafe(SEARCH_SPEED, DISTANCE_TO_CENTER+4, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
