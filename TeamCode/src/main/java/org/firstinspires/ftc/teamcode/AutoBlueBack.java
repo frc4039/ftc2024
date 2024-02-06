@@ -30,7 +30,6 @@
 package org.firstinspires.ftc.teamcode;
 
 
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -39,11 +38,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 import java.util.List;
 
 
@@ -74,7 +75,7 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Blue Back", group="Robot")
+@Autonomous(name = "2024: Auto Blue Back", group = "Robot")
 public class AutoBlueBack extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -92,10 +93,11 @@ public class AutoBlueBack extends LinearOpMode {
     private final int pivotHome = 0;
     private final int pivotTarget = -95;
     private boolean objectFound = false;
-    enum Location{First,Second, Third}
+
+    enum Location {First, Second, Third}
+
     private Location objectLocation = null;
     private ColorSensor color;
-
 
 
     // Declare Motors.  All but climbing motor is required in auto
@@ -114,24 +116,24 @@ public class AutoBlueBack extends LinearOpMode {
     private TouchSensor RightBeam = null;
     private TouchSensor RearBeam = null;
     // runtime used for timeout during moves in case an obstetrical is encountered.
-    private ElapsedTime     runtime = new ElapsedTime();
+    private final ElapsedTime runtime = new ElapsedTime();
 
 
     // Counts per inch are based on field measurements
 
-    static final double     DRIVE_COUNTS_PER_INCH         = 51;
-    static final double     STRAFE_COUNTS_PER_INCH        = 51;
-    static final double     DRIVE_SPEED             = 0.5;
-    static final double     SEARCH_SPEED = 0.3;  // Just in case we need to reduce the speed when searching for an object.
-    static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
+    static final double DRIVE_COUNTS_PER_INCH = 51;
+    static final double STRAFE_COUNTS_PER_INCH = 51;
+    static final double DRIVE_SPEED = 0.5;
+    static final double SEARCH_SPEED = 0.3;  // Just in case we need to reduce the speed when searching for an object.
+    static final double TURN_SPEED = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
-    static final double     CENTER_GRIPPER_OPEN = 0.1;
+    static final double CENTER_GRIPPER_OPEN = 0.1;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double DISTANCE_TO_CENTER = 27.0;
     private final double DISTANCE_TO_BACKDROP = 30.0;
 
-    private long TIME_SLEPT_AFTER_DROP = 50; //changes how long the robot sleeps for after dropping the purple pixel
-            //important because we don't want the robot to start moving too early
+    private final long TIME_SLEPT_AFTER_DROP = 50; //changes how long the robot sleeps for after dropping the purple pixel
+    //important because we don't want the robot to start moving too early
 
     @Override
     public void runOpMode() {
@@ -139,8 +141,8 @@ public class AutoBlueBack extends LinearOpMode {
         double DriveMove;
         double StrafeMove;
 
-        RightBeam =  hardwareMap.get(TouchSensor.class, "Right");
-        LeftBeam = hardwareMap.get(TouchSensor.class,"Left");
+        RightBeam = hardwareMap.get(TouchSensor.class, "Right");
+        LeftBeam = hardwareMap.get(TouchSensor.class, "Left");
         RearBeam = hardwareMap.get(TouchSensor.class, "Rear");
 
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -204,40 +206,40 @@ public class AutoBlueBack extends LinearOpMode {
 
         encoderStrafe(DRIVE_SPEED, 1, 5);
         encoderDrive(DRIVE_SPEED, 7.5, 5);
-              // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(SEARCH_SPEED, DISTANCE_TO_CENTER+4, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+        // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
+        if (encoderStrafe(SEARCH_SPEED, DISTANCE_TO_CENTER + 4, 5)) {  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             FindBlueLineDrive();
             objectFound = true;
             objectLocation = Location.First;
-            encoderDrive(DRIVE_SPEED,5,5);
+            encoderDrive(DRIVE_SPEED, 5, 5);
         }
 // Move back to center position
-        if (!objectFound){
+        if (!objectFound) {
             encoderStrafe(DRIVE_SPEED, 9, 5);
             sleep(250);
-            if(encoderDrive(SEARCH_SPEED,-8,5)){  // object found in position 2 // inches is formerly -12
+            if (encoderDrive(SEARCH_SPEED, -8, 5)) {  // object found in position 2 // inches is formerly -12
                 FindBlueLineStrafe();
 //                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
                 objectFound = true;
                 objectLocation = Location.Second;
-                telemetry.addData("Detected","Second Position");
+                telemetry.addData("Detected", "Second Position");
                 encoderStrafe(DRIVE_SPEED, -9, 5);
                 encoderDrive(DRIVE_SPEED, 14, 5);
             }
- // Move back to center position
+            // Move back to center position
         }
-        if (!objectFound){
-            encoderStrafe(DRIVE_SPEED,-10.5,5);
+        if (!objectFound) {
+            encoderStrafe(DRIVE_SPEED, -10.5, 5);
 //            sleep(500);ii
 
-            encoderDrive(SEARCH_SPEED,-12.5,5);
+            encoderDrive(SEARCH_SPEED, -12.5, 5);
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             FindBlueLineDrive();
             objectLocation = Location.Third;
-            encoderDrive(DRIVE_SPEED,24,5);
+            encoderDrive(DRIVE_SPEED, 24, 5);
         }
-        switch (objectLocation){
+        switch (objectLocation) {
             case First:
                 TagTarget = 1;
                 break;
@@ -259,7 +261,7 @@ public class AutoBlueBack extends LinearOpMode {
 
         MoveToAprilTag(TagTarget);
 
-        encoderDrive(SEARCH_SPEED,2,5);
+        encoderDrive(SEARCH_SPEED, 2, 5);
 
         elevatorPivot.setPower(0);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -271,13 +273,12 @@ public class AutoBlueBack extends LinearOpMode {
 //        telemetry.update();
         // move back
 
-        encoderDrive(SEARCH_SPEED,-5,5);
+        encoderDrive(SEARCH_SPEED, -5, 5);
 
 
+        encoderStrafe(DRIVE_SPEED, -1 * (16 + (TagTarget - 1) * 4), 5);
 
-        encoderStrafe(DRIVE_SPEED,-1*(16 +(TagTarget -1)*4),5);
-
-        encoderDrive(DRIVE_SPEED,5,5);
+        encoderDrive(DRIVE_SPEED, 5, 5);
 
 
 //        telemetry.addData("Path", "Complete");
@@ -294,7 +295,7 @@ public class AutoBlueBack extends LinearOpMode {
      *  3) Driver stops the OpMode running.
      */
 
-    public boolean MoveToAprilTag(int TagLocation){
+    public boolean MoveToAprilTag(int TagLocation) {
 
         double drive = 0.0;
         double strafe = 0.0;
@@ -322,13 +323,12 @@ public class AutoBlueBack extends LinearOpMode {
                     TagFound = true;
                     TargetTagFound = true;
                     telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                    telemetry.addLine(String.format("\n==== %f range %f bearing",detection.ftcPose.range,detection.ftcPose.bearing));
+                    telemetry.addLine(String.format("\n==== %f range %f bearing", detection.ftcPose.range, detection.ftcPose.bearing));
                     telemetry.update();
-                    if (Math.abs(detection.ftcPose.bearing) > 5){
+                    if (Math.abs(detection.ftcPose.bearing) > 5) {
                         strafe = -1.0 * Math.signum(detection.ftcPose.bearing);
                         drive = 0.0;
-                    }
-                    else {
+                    } else {
                         drive = 1.0;
                         strafe = 0.0;
                     }
@@ -338,8 +338,7 @@ public class AutoBlueBack extends LinearOpMode {
                     strafe = -1 * Math.sin(detection.ftcPose.bearing / 180 *3.1415);
 
  */
-                }
-                else if (TargetTagFound == false) {
+                } else if (!TargetTagFound) {
                     drive = 0.0;
                     strafe = 0.0;
 
@@ -353,12 +352,12 @@ public class AutoBlueBack extends LinearOpMode {
                     }
                 }
             }   // end for() loop
-            frontLeft.setPower(maxSpeed*(drive - strafe ));
-            frontRight.setPower(maxSpeed*(drive - strafe ));
-            rearLeft.setPower(maxSpeed*(drive + strafe ));
-            rearRight.setPower(maxSpeed*(drive + strafe ));
+            frontLeft.setPower(maxSpeed * (drive - strafe));
+            frontRight.setPower(maxSpeed * (drive - strafe));
+            rearLeft.setPower(maxSpeed * (drive + strafe));
+            rearRight.setPower(maxSpeed * (drive + strafe));
 
-            if (currentRange < targetrange){
+            if (currentRange < targetrange) {
                 frontLeft.setPower(0.0);
                 frontRight.setPower(0.0);
                 rearLeft.setPower(0.0);
@@ -369,7 +368,8 @@ public class AutoBlueBack extends LinearOpMode {
         }
         return true;
     }
-    public void FindBlueLineStrafe (){
+
+    public void FindBlueLineStrafe() {
 
         final int interval = 5;
         final int NPoints = 100;
@@ -380,11 +380,10 @@ public class AutoBlueBack extends LinearOpMode {
         int CurrPos = 0;
 
 
-
-        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval*(NPoints/2));
-        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval*(NPoints/2));
-        rearRight.setTargetPosition(rearRight.getCurrentPosition() + interval*(NPoints/2));
-        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() + interval*(NPoints/2));
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval * (NPoints / 2));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval * (NPoints / 2));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() + interval * (NPoints / 2));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() + interval * (NPoints / 2));
 
         frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -397,7 +396,7 @@ public class AutoBlueBack extends LinearOpMode {
         rearRight.setPower(RunPower);
 
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-            telemetry.addData("Move Operation","Complete");
+            telemetry.addData("Move Operation", "Complete");
         }
 
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -407,16 +406,17 @@ public class AutoBlueBack extends LinearOpMode {
 
         frontLeft.setPower(SearchPower);
         frontRight.setPower(SearchPower);
-        rearLeft.setPower(-1*SearchPower);
-        rearRight.setPower(-1*SearchPower);
+        rearLeft.setPower(-1 * SearchPower);
+        rearRight.setPower(-1 * SearchPower);
 
         frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        for (int i=0;(i<NPoints) && opModeIsActive();i++) {
-            while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+        for (int i = 0; (i < NPoints) && opModeIsActive(); i++) {
+            while (((CurrPos = frontLeft.getCurrentPosition()) < i * interval) && opModeIsActive())
+                ;
 //             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
             search[i] = color.blue();
         }
@@ -428,22 +428,21 @@ public class AutoBlueBack extends LinearOpMode {
 
         int maxblue = 0;
         int maxloc = 0;
-        for (int i = 0; i< 100; i++){
-            if( search[i] > maxblue){
+        for (int i = 0; i < 100; i++) {
+            if (search[i] > maxblue) {
                 maxblue = search[i];
-                maxloc = i*interval;
+                maxloc = i * interval;
             }
         }
         frontLeft.setTargetPosition(maxloc);
         frontRight.setTargetPosition(maxloc);
-        rearRight.setTargetPosition(-1*maxloc);
-        rearLeft.setTargetPosition(-1*maxloc);
+        rearRight.setTargetPosition(-1 * maxloc);
+        rearLeft.setTargetPosition(-1 * maxloc);
 
         frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
 
 
         frontLeft.setPower(RunPower);
@@ -452,7 +451,7 @@ public class AutoBlueBack extends LinearOpMode {
         rearRight.setPower(RunPower);
 
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-            telemetry.addData("Move Operation","Complete");
+            telemetry.addData("Move Operation", "Complete");
         }
         //sleep(100);
         purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
@@ -479,7 +478,7 @@ public class AutoBlueBack extends LinearOpMode {
 
     }
 
-    public void FindBlueLineDrive (){
+    public void FindBlueLineDrive() {
 
         final int interval = 5;
         final int NPoints = 100;
@@ -490,11 +489,10 @@ public class AutoBlueBack extends LinearOpMode {
         int CurrPos = 0;
 
 
-
-        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval*(NPoints/2));
-        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval*(NPoints/2));
-        rearRight.setTargetPosition(rearRight.getCurrentPosition() - interval*(NPoints/2));
-        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() - interval*(NPoints/2));
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval * (NPoints / 2));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval * (NPoints / 2));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() - interval * (NPoints / 2));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() - interval * (NPoints / 2));
 
         frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -507,8 +505,8 @@ public class AutoBlueBack extends LinearOpMode {
         rearRight.setPower(RunPower);
 
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-                telemetry.addData("Move Operation","Complete");
-            }
+            telemetry.addData("Move Operation", "Complete");
+        }
 
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -525,8 +523,9 @@ public class AutoBlueBack extends LinearOpMode {
         rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        for (int i=0;(i<NPoints) && opModeIsActive();i++) {
-            while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+        for (int i = 0; (i < NPoints) && opModeIsActive(); i++) {
+            while (((CurrPos = frontLeft.getCurrentPosition()) < i * interval) && opModeIsActive())
+                ;
 //             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
             search[i] = color.blue();
         }
@@ -538,10 +537,10 @@ public class AutoBlueBack extends LinearOpMode {
 
         int maxblue = 0;
         int maxloc = 0;
-        for (int i = 0; i< 100; i++){
-            if( search[i] > maxblue){
+        for (int i = 0; i < 100; i++) {
+            if (search[i] > maxblue) {
                 maxblue = search[i];
-                maxloc = i*interval;
+                maxloc = i * interval;
             }
         }
         frontLeft.setTargetPosition(maxloc);
@@ -555,26 +554,25 @@ public class AutoBlueBack extends LinearOpMode {
         rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 
-
         frontLeft.setPower(RunPower);
         frontRight.setPower(RunPower);
         rearLeft.setPower(RunPower);
         rearRight.setPower(RunPower);
 
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-            telemetry.addData("Move Operation","Complete");
+            telemetry.addData("Move Operation", "Complete");
         }
         //sleep(100);
         purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
         sleep(TIME_SLEPT_AFTER_DROP);
 
-        frontLeft.setTargetPosition(interval*NPoints);
-        frontRight.setTargetPosition(interval*NPoints);
-        rearRight.setTargetPosition(interval*NPoints);
-        rearLeft.setTargetPosition(interval*NPoints);
+        frontLeft.setTargetPosition(interval * NPoints);
+        frontRight.setTargetPosition(interval * NPoints);
+        rearRight.setTargetPosition(interval * NPoints);
+        rearLeft.setTargetPosition(interval * NPoints);
 
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-            telemetry.addData("Move Operation","Complete");
+            telemetry.addData("Move Operation", "Complete");
         }
         frontLeft.setPower(0);
         frontRight.setPower(0);
@@ -587,9 +585,10 @@ public class AutoBlueBack extends LinearOpMode {
         rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
     }
+
     public boolean encoderStrafe(double speed,
-                              double inches,
-                              double timeoutS){
+                                 double inches,
+                                 double timeoutS) {
         // Return value is True if item is found and false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
@@ -597,11 +596,11 @@ public class AutoBlueBack extends LinearOpMode {
         int newRearRightTarget;
         boolean objectFlag = false;
 
-        if (opModeIsActive()){
-            newFrontLeftTarget = frontLeft.getCurrentPosition()-(int)(inches * STRAFE_COUNTS_PER_INCH);
-            newFrontRightTarget = frontRight.getCurrentPosition()-(int)(inches * STRAFE_COUNTS_PER_INCH);
-            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * STRAFE_COUNTS_PER_INCH);
-            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * STRAFE_COUNTS_PER_INCH);
+        if (opModeIsActive()) {
+            newFrontLeftTarget = frontLeft.getCurrentPosition() - (int) (inches * STRAFE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition() - (int) (inches * STRAFE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition() + (int) (inches * STRAFE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition() + (int) (inches * STRAFE_COUNTS_PER_INCH);
 
             frontLeft.setTargetPosition(newFrontLeftTarget);
             frontRight.setTargetPosition(newFrontRightTarget);
@@ -623,15 +622,15 @@ public class AutoBlueBack extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
+                if (RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()) {
                     objectFlag = true;
-                    telemetry.addData("Move Operation","Object found!");
+                    telemetry.addData("Move Operation", "Object found!");
                 }
                 // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d :%7d :%7d",
-                        newFrontLeftTarget,  newFrontRightTarget,
+                telemetry.addData("Running to", " %7d :%7d :%7d :%7d",
+                        newFrontLeftTarget, newFrontRightTarget,
                         newRearLeftTarget, newRearRightTarget);
-                telemetry.addData("Currently at",  " at %7d :%7d :%7d :%7d",
+                telemetry.addData("Currently at", " at %7d :%7d :%7d :%7d",
                         frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
                         rearLeft.getCurrentPosition(), rearRight.getCurrentPosition());
                 telemetry.update();
@@ -652,8 +651,8 @@ public class AutoBlueBack extends LinearOpMode {
     }
 
     public boolean encoderDrive(double speed,
-                             double inches,
-                             double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
+                                double inches,
+                                double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
         int newRearLeftTarget;
@@ -664,10 +663,10 @@ public class AutoBlueBack extends LinearOpMode {
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            newFrontLeftTarget = frontLeft.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
-            newFrontRightTarget = frontRight.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
-            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
-            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
+            newFrontLeftTarget = frontLeft.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
 
             frontLeft.setTargetPosition(newFrontLeftTarget);
             frontRight.setTargetPosition(newFrontRightTarget);
@@ -696,13 +695,13 @@ public class AutoBlueBack extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearRight.isBusy()) {
-                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
+                if (RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()) {
                     objectFlag = true;
                 }
 
                 // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d", newFrontLeftTarget,  newFrontRightTarget);
-                telemetry.addData("Currently at",  " at %7d :%7d",
+                telemetry.addData("Running to", " %7d :%7d", newFrontLeftTarget, newFrontRightTarget);
+                telemetry.addData("Currently at", " at %7d :%7d",
                         frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
                 telemetry.update();
             }
@@ -727,8 +726,9 @@ public class AutoBlueBack extends LinearOpMode {
 
 //            sleep(250);   // optional pause after each move.  This can be handeled in the main code if needed.
         }
-    return objectFlag;
+        return objectFlag;
     }
+
     private void initAprilTag() {
 
         // Create the AprilTag processor.

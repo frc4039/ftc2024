@@ -20,7 +20,7 @@ public class SensorTouch extends OpMode {
     TouchSensor beam0 = null;
     TouchSensor beam1 = null;
 
-    public void init(){
+    public void init() {
         beam0 = hardwareMap.get(TouchSensor.class, "beam0");
         beam1 = hardwareMap.get(TouchSensor.class, "beam1");
     }
@@ -28,22 +28,22 @@ public class SensorTouch extends OpMode {
 //    private ElapsedTime runtime = new ElapsedTime();
 
     @Override
-    public void start(){
+    public void start() {
         //insert something here.
     }
 
     @Override
-    public void loop(){
-        if (beam0.isPressed()){
-            telemetry.addData("0Broken","");
+    public void loop() {
+        if (beam0.isPressed()) {
+            telemetry.addData("0Broken", "");
         } else {
-            telemetry.addData("0Unbroken","");
+            telemetry.addData("0Unbroken", "");
         }
 
-        if (beam1.isPressed()){
-            telemetry.addData("1broken","");
+        if (beam1.isPressed()) {
+            telemetry.addData("1broken", "");
         } else {
-            telemetry.addData("1unbroken","");
+            telemetry.addData("1unbroken", "");
         }
 
         telemetry.update();

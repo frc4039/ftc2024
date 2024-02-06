@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name="2024 Teleop", group="Iterative OpMode")
+@TeleOp(name = "2024 Teleop", group = "Iterative OpMode")
 
 public class Teleop24 extends OpMode {
 
@@ -17,7 +17,7 @@ public class Teleop24 extends OpMode {
     private DcMotor frontRight;
     private DcMotor rearLeft;
     private DcMotor rearRight;
-    
+
     private DcMotor elevatorPivot;
     private DcMotor climbHoist;
 
@@ -27,9 +27,9 @@ public class Teleop24 extends OpMode {
     private Servo purplePixelGripper;
     private Servo droneLauncher;
 
-    private int pivotHome = 0;
-    private int pivotTarget = -95;
-    private int pivotClimbTarget = -190;
+    private final int pivotHome = 0;
+    private final int pivotTarget = -95;
+    private final int pivotClimbTarget = -190;
 
 
     private final double maxSpeed = 0.625;
@@ -42,10 +42,10 @@ public class Teleop24 extends OpMode {
 
 //    private ElapsedTime runtime = new ElapsedTime();
 
-    public void init(){
+    public void init() {
         UpPos = false;
 
-        frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         rearLeft = hardwareMap.get(DcMotor.class, "rearLeft");
         rearRight = hardwareMap.get(DcMotor.class, "rearRight");
@@ -87,7 +87,7 @@ public class Teleop24 extends OpMode {
         rearLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rearRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         elevatorPivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-  //      moveToPos(elevatorPivotCrawlSpeed, pivotHome);
+        //      moveToPos(elevatorPivotCrawlSpeed, pivotHome);
 
         climbHoist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -106,12 +106,12 @@ public class Teleop24 extends OpMode {
     }
 
     @Override
-    public void start(){
+    public void start() {
         //insert something here.
     }
 
     @Override
-    public void loop(){
+    public void loop() {
 
         // Position of drive motor encoders
         telemetry.addData("Left Front Motor Encoder:", frontLeft.getCurrentPosition());
@@ -145,8 +145,8 @@ public class Teleop24 extends OpMode {
         boolean openPurplePixelGripper = (gamepad2.right_stick_button);
         boolean launchDrone = (gamepad2.left_stick_button);
 
-     //   boolean  = (gamepad2.left_stick_y);
-     //   boolean  = (gamepad2.right_stick_button);
+        //   boolean  = (gamepad2.left_stick_y);
+        //   boolean  = (gamepad2.right_stick_button);
 
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
@@ -166,14 +166,14 @@ public class Teleop24 extends OpMode {
 
         // Allows for multiple functions to happen at once (eg. drive & strafe, turn & drive, etc)
         double denominator = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1);
-        frontLeft.setPower(maxSpeed*(drive - strafe + turn)/denominator);
-        frontRight.setPower(maxSpeed*(drive - strafe - turn)/denominator);
-        rearLeft.setPower(maxSpeed*(drive + strafe + turn)/denominator);
-        rearRight.setPower(maxSpeed*(drive + strafe - turn)/denominator);
+        frontLeft.setPower(maxSpeed * (drive - strafe + turn) / denominator);
+        frontRight.setPower(maxSpeed * (drive - strafe - turn) / denominator);
+        rearLeft.setPower(maxSpeed * (drive + strafe + turn) / denominator);
+        rearRight.setPower(maxSpeed * (drive + strafe - turn) / denominator);
 
         //PIVOT CONTROLS
         // Move up to scoring position
-        if(pivotUp && !UpPos) {
+        if (pivotUp && !UpPos) {
             UpPos = true;
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotUpSpeed, pivotTarget);
@@ -181,22 +181,22 @@ public class Teleop24 extends OpMode {
         }
 
         // Move down to intake position
-        if(pivotReset ) {
+        if (pivotReset) {
             UpPos = false;
             elevatorPivot.setPower(0);
             elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         // Move up to climbing position
-        if (pivotClimb ) {
+        if (pivotClimb) {
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
         }
 
-        if(!climbHoist.isBusy()){
+        if (!climbHoist.isBusy()) {
             climbHoist.setPower(0);
         }
-        if(climbHoist.isBusy()) {
+        if (climbHoist.isBusy()) {
             elevatorPivot.setPower(0);
         }
 
@@ -214,31 +214,31 @@ public class Teleop24 extends OpMode {
             gripperRight.setPosition(0);
             telemetry.addData("grip closing", gripperRight.getPosition());
             telemetry.update();
-        } else if (openGrip){
+        } else if (openGrip) {
             gripperLeft.setPosition(0.25); //test for now lol
             gripperRight.setPosition(0.25);
             telemetry.addData("grip opening", gripperRight.getPosition());
             telemetry.update();
         }
 
-          // Climber Control System
-          if (spinClimber == true) {
+        // Climber Control System
+        if (spinClimber) {
             moveClimber(0.75);
-          } else if (spinClimber == false) {
+        } else if (!spinClimber) {
             moveClimber(0);
-          }
+        }
 
-          if (resetElevatorPivotButton == true) {
-              elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-          }
+        if (resetElevatorPivotButton) {
+            elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
 
-          if(openPurplePixelGripper == true) {
-              purplePixelGripper.setPosition(0.1);
-          }
+        if (openPurplePixelGripper) {
+            purplePixelGripper.setPosition(0.1);
+        }
 
-        if(launchDrone == true) {
+        if (launchDrone) {
             droneLauncher.setPosition(-0.3);
-            telemetry.addData("Launch Drone","Launching");
+            telemetry.addData("Launch Drone", "Launching");
             telemetry.update();
         }
     }

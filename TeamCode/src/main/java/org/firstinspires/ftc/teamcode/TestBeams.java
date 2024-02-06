@@ -30,13 +30,14 @@
 package org.firstinspires.ftc.teamcode;
 
 
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.Objects;
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -64,15 +65,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Test Beams", group="Robot")
+@Autonomous(name = "2024: Test Beams", group = "Robot")
 public class TestBeams extends LinearOpMode {
-
 
 
     private final int pivotHome = 0;
     private final int pivotTarget = -95;
     private boolean objectFound = false;
-    enum Location{First,Second, Third}
+
+    enum Location {First, Second, Third}
+
     private Location objectLocation = null;
 
 
@@ -92,24 +94,24 @@ public class TestBeams extends LinearOpMode {
     private TouchSensor RightBeam = null;
     private TouchSensor RearBeam = null;
     // runtime used for timeout during moves in case an obstetrical is encountered.
-    private ElapsedTime     runtime = new ElapsedTime();
+    private final ElapsedTime runtime = new ElapsedTime();
 
 
     // Counts per inch are based on field measurements
 
-    static final double     DRIVE_COUNTS_PER_INCH         = 51;
-    static final double     STRAFE_COUNTS_PER_INCH        = 51;
-    static final double     DRIVE_SPEED             = 0.4039;
-    static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
-    static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
+    static final double DRIVE_COUNTS_PER_INCH = 51;
+    static final double STRAFE_COUNTS_PER_INCH = 51;
+    static final double DRIVE_SPEED = 0.4039;
+    static final double SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
+    static final double TURN_SPEED = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
-    static final double     CENTER_GRIPPER_OPEN = 0.1;
+    static final double CENTER_GRIPPER_OPEN = 0.1;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
 
     @Override
     public void runOpMode() {
-        RightBeam =  hardwareMap.get(TouchSensor.class, "Right");
-        LeftBeam = hardwareMap.get(TouchSensor.class,"Left");
+        RightBeam = hardwareMap.get(TouchSensor.class, "Right");
+        LeftBeam = hardwareMap.get(TouchSensor.class, "Left");
         RearBeam = hardwareMap.get(TouchSensor.class, "Rear");
 
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -150,33 +152,33 @@ public class TestBeams extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        while(opModeIsActive()) {
+        while (opModeIsActive()) {
             telemetry.addData("LeftBeam", LeftBeam.isPressed());
             telemetry.addData("RightBeam", RightBeam.isPressed());
-            telemetry.addData("RearBeam", RearBeam .isPressed());
+            telemetry.addData("RearBeam", RearBeam.isPressed());
             telemetry.update();
         }
         stop();
 
 
-            encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(SEARCH_SPEED, 12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+        encoderStrafe(DRIVE_SPEED, 28.0, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
+        if (encoderStrafe(SEARCH_SPEED, 12.0, 5)) {  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             objectFound = true;
             objectLocation = Location.Second;
         }
-        encoderStrafe(DRIVE_SPEED,-10,5);  // Move back to center position
-        if (!objectFound){
-            if(encoderDrive(SEARCH_SPEED,-12,5)){  // object found in position 2
+        encoderStrafe(DRIVE_SPEED, -10, 5);  // Move back to center position
+        if (!objectFound) {
+            if (encoderDrive(SEARCH_SPEED, -12, 5)) {  // object found in position 2
                 purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
                 objectFound = true;
                 objectLocation = Location.Third;
-                telemetry.addData("Detected","Third Position");
+                telemetry.addData("Detected", "Third Position");
             }
-            encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
+            encoderDrive(DRIVE_SPEED, 12, 5);  // Move back to center position
         }
-        if (!objectFound){
-            encoderDrive(SEARCH_SPEED,6,5);
+        if (!objectFound) {
+            encoderDrive(SEARCH_SPEED, 6, 5);
             purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             objectLocation = Location.First;
         }
@@ -186,14 +188,11 @@ public class TestBeams extends LinearOpMode {
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        switch(objectLocation){
-            case First:
-                encoderDrive(DRIVE_SPEED,32,5);
-                //drive 36
-                break;
-            default:
-                encoderDrive(DRIVE_SPEED,42,5);
-                break;
+        if (Objects.requireNonNull(objectLocation) == Location.First) {
+            encoderDrive(DRIVE_SPEED, 32, 5);
+            //drive 36
+        } else {
+            encoderDrive(DRIVE_SPEED, 42, 5);
         }
 
         //drop pixel
@@ -203,7 +202,7 @@ public class TestBeams extends LinearOpMode {
         telemetry.update();
         sleep(500);
         // move back
-        encoderDrive(DRIVE_SPEED,-10,5);
+        encoderDrive(DRIVE_SPEED, -10, 5);
 
         // lower arm
         elevatorPivot.setPower(0);
@@ -211,18 +210,18 @@ public class TestBeams extends LinearOpMode {
 
         sleep(500);
 
-        switch (objectLocation){
+        switch (objectLocation) {
             case First:
-                encoderStrafe(DRIVE_SPEED,-26,5);
+                encoderStrafe(DRIVE_SPEED, -26, 5);
                 break;
             case Second:
-                encoderStrafe(DRIVE_SPEED,-26,5);
+                encoderStrafe(DRIVE_SPEED, -26, 5);
                 break;
             default:
-                encoderStrafe(DRIVE_SPEED,-26,5);
+                encoderStrafe(DRIVE_SPEED, -26, 5);
                 break;
         }
-        encoderDrive(DRIVE_SPEED,10,5);
+        encoderDrive(DRIVE_SPEED, 10, 5);
 
 
         telemetry.addData("Path", "Complete");
@@ -241,8 +240,8 @@ public class TestBeams extends LinearOpMode {
 
 
     public boolean encoderStrafe(double speed,
-                              double inches,
-                              double timeoutS){
+                                 double inches,
+                                 double timeoutS) {
         // Return value is True if item is found and false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
@@ -250,11 +249,11 @@ public class TestBeams extends LinearOpMode {
         int newRearRightTarget;
         boolean objectFlag = false;
 
-        if (opModeIsActive()){
-            newFrontLeftTarget = frontLeft.getCurrentPosition()-(int)(inches * STRAFE_COUNTS_PER_INCH);
-            newFrontRightTarget = frontRight.getCurrentPosition()-(int)(inches * STRAFE_COUNTS_PER_INCH);
-            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * STRAFE_COUNTS_PER_INCH);
-            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * STRAFE_COUNTS_PER_INCH);
+        if (opModeIsActive()) {
+            newFrontLeftTarget = frontLeft.getCurrentPosition() - (int) (inches * STRAFE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition() - (int) (inches * STRAFE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition() + (int) (inches * STRAFE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition() + (int) (inches * STRAFE_COUNTS_PER_INCH);
 
             frontLeft.setTargetPosition(newFrontLeftTarget);
             frontRight.setTargetPosition(newFrontRightTarget);
@@ -276,15 +275,15 @@ public class TestBeams extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
+                if (RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()) {
                     objectFlag = true;
-                    telemetry.addData("Move Operation","Object found!");
+                    telemetry.addData("Move Operation", "Object found!");
                 }
                 // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d :%7d :%7d",
-                        newFrontLeftTarget,  newFrontRightTarget,
+                telemetry.addData("Running to", " %7d :%7d :%7d :%7d",
+                        newFrontLeftTarget, newFrontRightTarget,
                         newRearLeftTarget, newRearRightTarget);
-                telemetry.addData("Currently at",  " at %7d :%7d :%7d :%7d",
+                telemetry.addData("Currently at", " at %7d :%7d :%7d :%7d",
                         frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
                         rearLeft.getCurrentPosition(), rearRight.getCurrentPosition());
                 telemetry.update();
@@ -305,8 +304,8 @@ public class TestBeams extends LinearOpMode {
     }
 
     public boolean encoderDrive(double speed,
-                             double inches,
-                             double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
+                                double inches,
+                                double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
         int newRearLeftTarget;
@@ -317,10 +316,10 @@ public class TestBeams extends LinearOpMode {
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            newFrontLeftTarget = frontLeft.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
-            newFrontRightTarget = frontRight.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
-            newRearLeftTarget = rearLeft.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
-            newRearRightTarget = rearRight.getCurrentPosition()+(int)(inches * DRIVE_COUNTS_PER_INCH);
+            newFrontLeftTarget = frontLeft.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
+            newFrontRightTarget = frontRight.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
+            newRearLeftTarget = rearLeft.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
+            newRearRightTarget = rearRight.getCurrentPosition() + (int) (inches * DRIVE_COUNTS_PER_INCH);
 
             frontLeft.setTargetPosition(newFrontLeftTarget);
             frontRight.setTargetPosition(newFrontRightTarget);
@@ -349,13 +348,13 @@ public class TestBeams extends LinearOpMode {
             while (opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
                     (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearRight.isBusy()) {
-                if(RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()){
+                if (RightBeam.isPressed() || LeftBeam.isPressed() || RearBeam.isPressed()) {
                     objectFlag = true;
                 }
 
                 // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d", newFrontLeftTarget,  newFrontRightTarget);
-                telemetry.addData("Currently at",  " at %7d :%7d",
+                telemetry.addData("Running to", " %7d :%7d", newFrontLeftTarget, newFrontRightTarget);
+                telemetry.addData("Currently at", " at %7d :%7d",
                         frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
                 telemetry.update();
             }
@@ -380,7 +379,7 @@ public class TestBeams extends LinearOpMode {
 
 //            sleep(250);   // optional pause after each move.  This can be handeled in the main code if needed.
         }
-    return objectFlag;
+        return objectFlag;
     }
 
 }
