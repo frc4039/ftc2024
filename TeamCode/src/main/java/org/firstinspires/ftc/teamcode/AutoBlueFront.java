@@ -212,6 +212,14 @@ public class AutoBlueFront extends LinearOpMode {
         }
         // Move back to center position
         if (!objectFound){
+            encoderDrive(DRIVE_SPEED, 17, 5);
+            FindBlueLineDrive();
+            objectFound = true;
+            objectLocation = Location.First;
+            encoderDrive(DRIVE_SPEED, 10, 5);
+            encoderStrafe(DRIVE_SPEED, 26, 5);
+            encoderDrive(DRIVE_SPEED, 2*22, 5);
+            encoderStrafe(DRIVE_SPEED, -26, 5);
         }
         switch (objectLocation){
             case First:
