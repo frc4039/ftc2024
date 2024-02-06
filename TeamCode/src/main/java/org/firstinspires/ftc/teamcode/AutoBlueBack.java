@@ -74,7 +74,7 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Blue Back", group="Robot")
+@Autonomous(name="2024: Auto Blue Back", group="Robot", preselectTeleOp="2024 Teleop")
 public class AutoBlueBack extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera

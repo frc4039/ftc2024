@@ -67,7 +67,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital??????
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Old", group="Robot")
+@Autonomous(name="2024: Old", group="Robot", preselectTeleOp="2024 Teleop")
 public class AutoByEncoder extends LinearOpMode {
 
 
