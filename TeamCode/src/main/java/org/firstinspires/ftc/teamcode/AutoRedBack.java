@@ -1,80 +1,38 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode;
 
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-/*
- * This OpMode illustrates the concept of driving a path based on encoder counts.
- * The code is structured as a LinearOpMode
- *
- * The code REQUIRES that you DO have encoders on the wheels,
- *   otherwise you would use: RobotAutoDriveByTime;
- *
- *  This code ALSO requires that the drive Motors have been configured such that a positive
- *  power command moves them forward, and causes the encoders to count UP.
- *
- *   The desired path in this example is:
- *   - Drive forward for 48 inches
- *   - Spin right for 12 Inches
- *   - Drive Backward for 24 inches
- *   - Stop and close the claw.
- *
- *  The code is written using a method called: encoderDrive(speed, leftInches, rightInches, timeoutS)
- *  that performs the actual movement.
- *  This method assumes that each movement is relative to the last stopping place.
- *  There are other ways to perform encoder based moves, but this method is probably the simplest.
- *  This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
- */
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import java.util.List;
 
 @Autonomous(name="2024: Auto Red Back", group="Robot", preselectTeleOp="2024 Teleop")
-public class AutoRedBack extends LinearOpMode {
+public class AutoRedBack extends LinearOpMode{
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
+    //     * The variable to store our instance of the AprilTag processor.
+    private AprilTagProcessor aprilTag;
 
+    //     * The variable to store our instance of the vision portal.
+    private VisionPortal visionPortal;
 
     private final int pivotHome = 0;
     private final int pivotTarget = -95;
     private boolean objectFound = false;
     enum Location{First,Second, Third}
     private Location objectLocation = null;
-
+    private ColorSensor color;
 
     // Declare Motors.  All but climbing motor is required in auto
     private DcMotor frontLeft = null;
@@ -94,25 +52,28 @@ public class AutoRedBack extends LinearOpMode {
     // runtime used for timeout during moves in case an obstetrical is encountered.
     private ElapsedTime     runtime = new ElapsedTime();
 
-
     // Counts per inch are based on field measurements
 
     static final double     DRIVE_COUNTS_PER_INCH         = 51;
     static final double     STRAFE_COUNTS_PER_INCH        = 51;
-    static final double     DRIVE_SPEED             = 0.4039;
-    static final double     SEARCH_SPEED = 0.2;  // Just in case we need to reduce the speed when searching for an object.
+    static final double     DRIVE_SPEED             = 0.5;
+    static final double     SEARCH_SPEED = 0.3;  // Just in case we need to reduce the speed when searching for an object.
     static final double     TURN_SPEED              = 0.5; //Not planning on peforming any turns in auto
     private final double maxSpeed = 0.625;   // Don't think this will be needed.
     static final double     CENTER_GRIPPER_OPEN = 0.1;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
-    private final double DISTANCE_TO_CENTER = -27.0;  // First Move distance
-    //                                       ^^^^^^ MUST BE NEGATIVE FOR RED SIDE!!!
-    private final double DISTANCE_TO_BACKDROP = 30.0;  // Move to backdrop distance
-    private final double CENTER_TO_TARGET = 12.0;   //   Move from center to target
+    private final double DISTANCE_TO_CENTER = 27.0;
+    private final double DISTANCE_TO_BACKDROP = 30.0;
 
+    private long TIME_SLEPT_AFTER_DROP = 50; //changes how long the robot sleeps for after dropping the purple pixel
+    //important because we don't want the robot to start moving too early
 
     @Override
     public void runOpMode() {
+        int TagTarget = 0;
+        double DriveMove;
+        double StrafeMove;
+
         RightBeam =  hardwareMap.get(TouchSensor.class, "Right");
         LeftBeam = hardwareMap.get(TouchSensor.class,"Left");
         RearBeam = hardwareMap.get(TouchSensor.class, "Rear");
@@ -128,6 +89,8 @@ public class AutoRedBack extends LinearOpMode {
         purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
+
+        color = hardwareMap.get(ColorSensor.class, "Color");
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
@@ -147,109 +110,172 @@ public class AutoRedBack extends LinearOpMode {
 
         gripperLeft.setPosition(0);
         gripperRight.setPosition(0);
-/*        elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        elevatorPivot.setPower(elevatorPivotUpSpeed);
-        elevatorPivot.setTargetPosition(-10);
-        elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-*/
-        // Wait for the game to start (driver presses PLAY)
-        waitForStart();
-/*
-        while(opModeIsActive()) {
-            telemetry.addData("LeftBeam", LeftBeam.isPressed());
-            telemetry.addData("RightBeam", RightBeam.isPressed());
-            telemetry.addData("RearBeam", RearBeam .isPressed());
-            telemetry.update();
-        }
-        stop();
-*/
 
-        encoderStrafe(DRIVE_SPEED, DISTANCE_TO_CENTER, 5);  // Move to center of second tile 36  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(DRIVE_SPEED,-12.0,5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
-            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+        // Wait for the game to start (driver presses PLAY)
+
+        initAprilTag();
+
+        waitForStart();
+
+        encoderStrafe(DRIVE_SPEED, -1, 5);
+        encoderDrive(DRIVE_SPEED, 7.5, 5);
+        // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
+        if (encoderStrafe(SEARCH_SPEED, -(DISTANCE_TO_CENTER+4), 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+//            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+            FindRedLineDrive();
             objectFound = true;
-            objectLocation = Location.Second;
-        }
-        encoderStrafe(DRIVE_SPEED,8,5);  // Move back to center position
-        if (!objectFound){
-            if(encoderDrive(SEARCH_SPEED,-12,5)){  // object found in position 2
-                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
-                objectFound = true;
-                objectLocation = Location.Third;
-            }
-            encoderDrive(DRIVE_SPEED,12,5);  // Move back to center position
-        }
-        if (!objectFound){
-            encoderDrive(SEARCH_SPEED,10,5);
-            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
             objectLocation = Location.First;
+            encoderDrive(DRIVE_SPEED,5,5);
         }
-        //raise arm
+// Move back to center position
+        if (!objectFound){
+            encoderStrafe(DRIVE_SPEED, -9, 5);
+            sleep(250);
+            if(encoderDrive(SEARCH_SPEED,-8,5)){  // object found in position 2 // inches is formerly -12
+                FindRedLineStrafe();
+//                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+                objectFound = true;
+                objectLocation = Location.Second;
+                telemetry.addData("Detected","Second Position");
+                encoderStrafe(DRIVE_SPEED, 9, 5);
+                encoderDrive(DRIVE_SPEED, 14, 5);
+            }
+            // Move back to center position
+        }
+        if (!objectFound){
+            encoderStrafe(DRIVE_SPEED,10.5,5);
+//            sleep(500);
+
+            encoderDrive(SEARCH_SPEED,-12.5,5);
+//            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+            FindRedLineDrive();
+            objectLocation = Location.Third;
+            encoderDrive(DRIVE_SPEED,24,5);
+        }
+        switch (objectLocation){
+            case First:
+                TagTarget = 1;
+                break;
+            case Second:
+                TagTarget = 2;
+                break;
+            case Third:
+                TagTarget = 3;
+                break;
+            default:
+                TagTarget = 2;
+                break;
+        } //adjust based on what the actual tag targets are, for testing purposes we use 1 2 3
+
         elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevatorPivot.setPower(elevatorPivotUpSpeed);
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        switch(objectLocation){
-            case First:
-                encoderDrive(DRIVE_SPEED,DISTANCE_TO_BACKDROP + 2,5);
-                //drive 36
-                break;
-            default:
-                encoderDrive(DRIVE_SPEED,DISTANCE_TO_BACKDROP + 10.0,5);
-                break;
-        }
+        MoveToAprilTag(TagTarget);
+
+        encoderDrive(SEARCH_SPEED,2,5);
+
+        elevatorPivot.setPower(0);
+        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //drop pixel
         gripperLeft.setPosition(0.25);
         gripperRight.setPosition(0.25);
-        telemetry.addData("grip opening", gripperRight.getPosition());
-        telemetry.update();
-        sleep(500);
+//        telemetry.addData("grip opening", gripperRight.getPosition());
+//        telemetry.update();
         // move back
-        encoderDrive(DRIVE_SPEED,-10,5);
 
-        // lower arm
-        elevatorPivot.setPower(0);
-        elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        sleep(500);
-
-        encoderStrafe(DRIVE_SPEED,-1*(DISTANCE_TO_CENTER + 2.0),5);
-/*        switch (objectLocation){
-            case First:
-                encoderStrafe(DRIVE_SPEED,20,5);
-                break;
-            case Second:
-                encoderStrafe(DRIVE_SPEED,24,5);
-                break;
-            default:
-                encoderStrafe(DRIVE_SPEED,26,5);
-                break;
-        }
-
- */
-        encoderDrive(DRIVE_SPEED,10,5);
+        encoderDrive(SEARCH_SPEED,-5,5);
 
 
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
+
+        encoderStrafe(DRIVE_SPEED, (30 - (TagTarget - 1) * 4),5); //adjust this math for other tag values
+
+        encoderDrive(DRIVE_SPEED,5,5);
+
         sleep(1000);  // pause to display final telemetry message.
     }
 
-    /*
-     *  Method to perform a relative move, based on encoder counts.
-     *  Encoders are not reset as the move is based on the current position.
-     *  Move will stop if any of three conditions occur:
-     *  1) Move gets to the desired position
-     *  2) Move runs out of time
-     *  3) Driver stops the OpMode running.
-     */
+    public boolean MoveToAprilTag(int TagLocation){
 
+        double drive = 0.0;
+        double strafe = 0.0;
+        boolean notInPosition = true;
+        double maxSpeed = 0.2;
+
+        double targetbearing = 0.0;
+        double targetrange = 12.0;
+        double currentRange = 0.0;
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        while (notInPosition && opModeIsActive()) {
+
+            boolean TargetTagFound = false;
+            boolean TagFound = false;
+
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == TagLocation) {
+                    TagFound = true;
+                    TargetTagFound = true;
+                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                    telemetry.addLine(String.format("\n==== %f range %f bearing",detection.ftcPose.range,detection.ftcPose.bearing));
+                    telemetry.update();
+                    if (Math.abs(detection.ftcPose.bearing) > 5){
+                        strafe = -1.0 * Math.signum(detection.ftcPose.bearing);
+                        drive = 0.0;
+                    }
+                    else {
+                        drive = 1.0;
+                        strafe = 0.0;
+                    }
+                    currentRange = detection.ftcPose.range;
+/*
+                    drive = Math.cos(detection.ftcPose.bearing / 180 * 3.1415);
+                    strafe = -1 * Math.sin(detection.ftcPose.bearing / 180 *3.1415);
+
+ */
+                }
+                else if (TargetTagFound == false) {
+                    drive = 0.0;
+                    strafe = 0.0;
+
+                    switch (detection.id) {
+                        case 1: // 4 for red
+                            break;
+                        case 2:  // 5 for red
+                            break;
+                        case 3:  //6 for red
+                            break;
+                    }
+                }
+            }   // end for() loop
+            frontLeft.setPower(maxSpeed*(drive - strafe ));
+            frontRight.setPower(maxSpeed*(drive - strafe ));
+            rearLeft.setPower(maxSpeed*(drive + strafe ));
+            rearRight.setPower(maxSpeed*(drive + strafe ));
+
+            if (currentRange < targetrange){
+                frontLeft.setPower(0.0);
+                frontRight.setPower(0.0);
+                rearLeft.setPower(0.0);
+                rearRight.setPower(0.0);
+                notInPosition = false;
+            }
+            sleep(10);
+        }
+        return true;
+    }
 
     public boolean encoderStrafe(double speed,
-                              double inches,
-                              double timeoutS){
+                                 double inches,
+                                 double timeoutS){
         // Return value is True if item is found and false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
@@ -312,8 +338,8 @@ public class AutoRedBack extends LinearOpMode {
     }
 
     public boolean encoderDrive(double speed,
-                             double inches,
-                             double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
+                                double inches,
+                                double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
         int newRearLeftTarget;
@@ -387,7 +413,287 @@ public class AutoRedBack extends LinearOpMode {
 
 //            sleep(250);   // optional pause after each move.  This can be handeled in the main code if needed.
         }
-    return objectFlag;
+        return objectFlag;
+    }
+
+    private void initAprilTag() {
+
+        // Create the AprilTag processor.
+        aprilTag = new AprilTagProcessor.Builder()
+
+                // The following default settings are available to un-comment and edit as needed.
+                //.setDrawAxes(false)
+                //.setDrawCubeProjection(false)
+                //.setDrawTagOutline(true)
+                //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+                //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+
+                // == CAMERA CALIBRATION ==
+                // If you do not manually specify calibration parameters, the SDK will attempt
+                // to load a predefined calibration for your camera.
+                //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
+                // ... these parameters are fx, fy, cx, cy.
+
+                .build();
+
+        // Adjust Image Decimation to trade-off detection-range for detection-rate.
+        // eg: Some typical detection data using a Logitech C920 WebCam
+        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
+        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
+        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
+        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
+        // Note: Decimation can be changed on-the-fly to adapt during a match.
+        //aprilTag.setDecimation(3);
+
+        // Create the vision portal by using a builder.
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        // Set the camera (webcam vs. built-in RC phone camera).
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+
+        // Choose a camera resolution. Not all cameras support all resolutions.
+        //builder.setCameraResolution(new Size(640, 480));
+
+        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
+        //builder.enableLiveView(true);
+
+        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
+        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+
+        // Choose whether or not LiveView stops if no processors are enabled.
+        // If set "true", monitor shows solid orange screen if no processors enabled.
+        // If set "false", monitor shows camera view without annotations.
+        //builder.setAutoStopLiveView(false);
+
+        // Set and enable the processor.
+        builder.addProcessor(aprilTag);
+
+        // Build the Vision Portal, using the above settings.
+        visionPortal = builder.build();
+
+        // Disable or re-enable the aprilTag processor at any time.
+        //visionPortal.setProcessorEnabled(aprilTag, true);
+
+    }   // end method initAprilTag()
+
+    public void FindRedLineDrive (){
+
+        final int interval = 5;
+        final int NPoints = 100;
+        final double RunPower = 0.3;
+        final double SearchPower = 0.1;
+
+        int[] search = new int[NPoints];
+        int CurrPos = 0;
+
+
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval*(NPoints/2));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval*(NPoints/2));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() - interval*(NPoints/2));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() - interval*(NPoints/2));
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setPower(SearchPower);
+        frontRight.setPower(SearchPower);
+        rearLeft.setPower(SearchPower);
+        rearRight.setPower(SearchPower);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        for (int i=0;(i<NPoints) && opModeIsActive();i++) {
+            while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+//             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
+            search[i] = color.red();
+        }
+
+        frontLeft.setPower(0.0);
+        frontRight.setPower(0.0);
+        rearLeft.setPower(0.0);
+        rearRight.setPower(0.0);
+
+        int maxred = 0;
+        int maxloc = 0;
+        for (int i = 0; i< 100; i++){
+            if( search[i] > maxred){
+                maxred = search[i];
+                maxloc = i*interval;
+            }
+        }
+        frontLeft.setTargetPosition(maxloc);
+        frontRight.setTargetPosition(maxloc);
+        rearRight.setTargetPosition(maxloc);
+        rearLeft.setTargetPosition(maxloc);
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        //sleep(100);
+        purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+        sleep(TIME_SLEPT_AFTER_DROP);
+
+        frontLeft.setTargetPosition(interval*NPoints);
+        frontRight.setTargetPosition(interval*NPoints);
+        rearRight.setTargetPosition(interval*NPoints);
+        rearLeft.setTargetPosition(interval*NPoints);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+    }
+
+    public void FindRedLineStrafe (){
+
+        final int interval = 5;
+        final int NPoints = 100;
+        final double RunPower = 0.1;
+        final double SearchPower = 0.07;
+
+        int[] search = new int[NPoints];
+        int CurrPos = 0;
+
+
+
+        frontLeft.setTargetPosition(frontLeft.getCurrentPosition() - interval*(NPoints/2));
+        frontRight.setTargetPosition(frontRight.getCurrentPosition() - interval*(NPoints/2));
+        rearRight.setTargetPosition(rearRight.getCurrentPosition() + interval*(NPoints/2));
+        rearLeft.setTargetPosition(rearLeft.getCurrentPosition() + interval*(NPoints/2));
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        frontLeft.setPower(SearchPower);
+        frontRight.setPower(SearchPower);
+        rearLeft.setPower(-1*SearchPower);
+        rearRight.setPower(-1*SearchPower);
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        for (int i=0;(i<NPoints) && opModeIsActive();i++) {
+            while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
+//             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
+            search[i] = color.red();
+        }
+
+        frontLeft.setPower(0.0);
+        frontRight.setPower(0.0);
+        rearLeft.setPower(0.0);
+        rearRight.setPower(0.0);
+
+        int maxred = 0;
+        int maxloc = 0;
+        for (int i = 0; i< 100; i++){
+            if( search[i] > maxred){
+                maxred = search[i];
+                maxloc = i*interval;
+            }
+        }
+        frontLeft.setTargetPosition(maxloc);
+        frontRight.setTargetPosition(maxloc);
+        rearRight.setTargetPosition(-1*maxloc);
+        rearLeft.setTargetPosition(-1*maxloc);
+
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rearLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
+
+        frontLeft.setPower(RunPower);
+        frontRight.setPower(RunPower);
+        rearLeft.setPower(RunPower);
+        rearRight.setPower(RunPower);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        //sleep(100);
+        purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
+        sleep(TIME_SLEPT_AFTER_DROP); //second sleep function to ensure that the pixel drops before moving again
+        /*        sleep(100);
+
+        frontLeft.setTargetPosition(interval*NPoints);
+        frontRight.setTargetPosition(interval*NPoints);
+        rearRight.setTargetPosition(interval*NPoints);
+        rearLeft.setTargetPosition(interval*NPoints);
+
+        while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
+            telemetry.addData("Move Operation","Complete");
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
+*/
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
     }
 
 }

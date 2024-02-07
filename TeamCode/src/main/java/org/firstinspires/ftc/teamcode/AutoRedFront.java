@@ -188,51 +188,51 @@ public class AutoRedFront extends LinearOpMode {
 
         waitForStart();
 
-        encoderStrafe(DRIVE_SPEED, 30, 5);
+        encoderStrafe(DRIVE_SPEED, -30, 5);
         if (encoderStrafe(SEARCH_SPEED, -12, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             FindRedLineStrafe();
             objectFound = true;
             objectLocation = Location.Second;
-            encoderStrafe(DRIVE_SPEED,15,5);
-            encoderDrive(DRIVE_SPEED,-3*24,10); //inv
-            encoderStrafe(DRIVE_SPEED,-24,5);
+            encoderStrafe(DRIVE_SPEED,-15,5);
+            encoderDrive(DRIVE_SPEED,3*24,10); //inv
+            encoderStrafe(DRIVE_SPEED,24,5);
         }
 // Move back to center position
         if (!objectFound){
-            encoderStrafe(DRIVE_SPEED,-12,5);
-            if(encoderDrive(SEARCH_SPEED,5,5)){ //inv
+            encoderStrafe(DRIVE_SPEED,12,5);
+            if(encoderDrive(SEARCH_SPEED,-5,5)){ //inv
                 FindRedLineDrive();
                 objectFound = true;
                 objectLocation = Location.Third;
-                encoderStrafe(DRIVE_SPEED,26,5);
+                encoderStrafe(DRIVE_SPEED,-26,5);
                 encoderDrive(DRIVE_SPEED,-3*24,10); //inv
-                encoderStrafe(DRIVE_SPEED,-24,5);
+                encoderStrafe(DRIVE_SPEED,24,5);
             }
         }
         // Move back to center position
         if (!objectFound){
-            encoderDrive(DRIVE_SPEED, -17, 5); //inv
+            encoderDrive(DRIVE_SPEED, 17, 5); //inv
             FindRedLineDrive();
             objectFound = true;
             objectLocation = Location.First;
-            encoderDrive(DRIVE_SPEED, -10, 5); //inv
-            encoderStrafe(DRIVE_SPEED, 26, 5);
-            encoderDrive(DRIVE_SPEED, -2*22, 5); //inv
+            encoderDrive(DRIVE_SPEED, 10, 5); //inv
             encoderStrafe(DRIVE_SPEED, -26, 5);
+            encoderDrive(DRIVE_SPEED, 2*22, 5); //inv
+            encoderStrafe(DRIVE_SPEED, 26, 5);
         }
         switch (objectLocation){
             case First:
-                TagTarget = 4;
+                TagTarget = 1;//  4;
                 break;
             case Second:
-                TagTarget = 5;
+                TagTarget = 2; //5;
                 break;
             case Third:
-                TagTarget = 6;
+                TagTarget = 3; //6;
                 break;
             default:
-                TagTarget = 5;
+                TagTarget = 2; //5;
                 break;
         }
 
