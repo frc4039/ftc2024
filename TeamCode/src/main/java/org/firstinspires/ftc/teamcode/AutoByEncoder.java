@@ -68,7 +68,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel; //should be digital??????
  */
 
 @Autonomous(name="2024: Old", group="Robot", preselectTeleOp="2024 Teleop")
-public class AutoByEncoder extends LinearOpMode {
+ public class AutoByEncoder extends LinearOpMode {
 
 
 

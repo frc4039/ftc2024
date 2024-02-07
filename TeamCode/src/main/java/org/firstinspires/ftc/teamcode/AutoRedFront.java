@@ -74,7 +74,7 @@ import java.util.List;
  */
 
 @Autonomous(name="2024: Auto Red Front", group="Robot", preselectTeleOp="2024 Teleop")
-public class AutoRedFront extends LinearOpMode {
+ public class AutoRedFront extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 

@@ -76,7 +76,7 @@ import java.util.List;
 @Autonomous(name="2024: Auto Blue Front", group="Robot", preselectTeleOp="2024 Teleop")
 public class AutoBlueFront extends LinearOpMode {
 
-    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
      * The variable to store our instance of the AprilTag processor.

@@ -172,7 +172,7 @@ public class Teleop24 extends OpMode {
 
 
         // Allows for multiple functions to happen at once (eg. drive & strafe, turn & drive, etc)
-        double denominator = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1);
+         double denominator = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1);
         frontLeft.setPower(maxSpeed*(drive - strafe + turn)/denominator);
         frontRight.setPower(maxSpeed*(drive - strafe - turn)/denominator);
         rearLeft.setPower(maxSpeed*(drive + strafe + turn)/denominator);
