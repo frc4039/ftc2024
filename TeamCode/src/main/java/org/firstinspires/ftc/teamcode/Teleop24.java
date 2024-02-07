@@ -24,6 +24,9 @@ public class Teleop24 extends OpMode {
     private Servo gripperLeft;
     private Servo gripperRight;
 
+    private Servo purplePixelGripper;
+    private Servo droneLauncher;
+
     private int pivotHome = 0;
     private int pivotTarget = -95;
     private int pivotClimbTarget = -190;
@@ -53,12 +56,14 @@ public class Teleop24 extends OpMode {
 
         gripperLeft = hardwareMap.get(Servo.class, "gripperLeft");
         gripperRight = hardwareMap.get(Servo.class, "gripperRight");
+
+        purplePixelGripper = hardwareMap.get(Servo.class, "purplePixelGripper");
+        droneLauncher = hardwareMap.get(Servo.class, "droneLauncher");
         // Maps motors to direction of rotation (Left motors are normally always reversed, may need testing)
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.FORWARD);
         rearLeft.setDirection(DcMotor.Direction.REVERSE);
         rearRight.setDirection(DcMotor.Direction.FORWARD);
-
         elevatorPivot.setDirection(DcMotor.Direction.FORWARD);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         elevatorPivot.setPower(0.0);
@@ -69,6 +74,12 @@ public class Teleop24 extends OpMode {
 
         gripperLeft.setDirection(Servo.Direction.REVERSE);
         gripperRight.setDirection(Servo.Direction.FORWARD);
+
+        purplePixelGripper.setDirection(Servo.Direction.REVERSE);
+        droneLauncher.setDirection(Servo.Direction.REVERSE);
+
+        purplePixelGripper.setPosition(0.0);
+        droneLauncher.setPosition(0.0);
 
         // When no power is set on a motor, brake.
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -113,6 +124,9 @@ public class Teleop24 extends OpMode {
         // Position of elevator arm motor encoder
         telemetry.addData("Elevator Arm Position:", elevatorPivot.getCurrentPosition());
 
+        telemetry.addData("Purple pixel servo position:", purplePixelGripper.getPosition());
+        telemetry.addData("Drone launcher servo position:", droneLauncher.getPosition());
+
         double drive = (-gamepad1.left_stick_y);//inverted???
         double strafe = (gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
@@ -126,6 +140,14 @@ public class Teleop24 extends OpMode {
 
         boolean spinClimber = (gamepad2.b);
 
+        boolean resetElevatorPivotButton = (gamepad2.left_stick_button);
+
+        boolean openPurplePixelGripper = (gamepad2.right_stick_button);
+        boolean launchDrone = (gamepad2.left_stick_button);
+
+     //   boolean  = (gamepad2.left_stick_y);
+     //   boolean  = (gamepad2.right_stick_button);
+
         /**
          </>his is some really janky math that someone implemented back in 2021, but hey, if it works, ¯\_(ツ)_/¯
          drive = drive * drive * Math.signum(drive);
@@ -136,9 +158,10 @@ public class Teleop24 extends OpMode {
 
         //slightly less janky math that could work
 
-        drive = drive * Math.abs(drive);
-        strafe = strafe * Math.abs(strafe);
-        turn = turn * Math.abs(turn);
+        drive = Math.pow(drive, 3);
+        strafe = Math.pow(strafe, 3);
+        turn = Math.pow(turn, 3);
+        //changed to cubic instead of quadratic
 
 
         // Allows for multiple functions to happen at once (eg. drive & strafe, turn & drive, etc)
@@ -166,10 +189,6 @@ public class Teleop24 extends OpMode {
 
         // Move up to climbing position
         if (pivotClimb ) {
-            if (UpPos){
-                elevatorPivot.setPower(0);
-                elevatorPivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
             elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             moveToPos(elevatorPivotClimbSpeed, pivotClimbTarget);
         }
@@ -184,9 +203,11 @@ public class Teleop24 extends OpMode {
         // Debugging to tell when the moveToPos function is complete
         if (elevatorPivot.isBusy()) {
             telemetry.addData("Still Moving - Current Pivot Motor Encoder Value ", elevatorPivot.getCurrentPosition());
-        } else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
-            elevatorPivot.setPower(0);
         }
+        // This is no longer requried as the power is set to 0 at time of lowering.
+        //else if (!elevatorPivot.isBusy() && elevatorPivot.getCurrentPosition() == pivotHome){
+        //    elevatorPivot.setPower(0);
+        //}
 
         if (closeGrip) {
             gripperLeft.setPosition(0);
@@ -206,5 +227,19 @@ public class Teleop24 extends OpMode {
           } else if (spinClimber == false) {
             moveClimber(0);
           }
+
+          if (resetElevatorPivotButton == true) {
+              elevatorPivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+          }
+
+          if(openPurplePixelGripper == true) {
+              purplePixelGripper.setPosition(0.1);
+          }
+
+        if(launchDrone == true) {
+            droneLauncher.setPosition(-0.3);
+            telemetry.addData("Launch Drone","Launching");
+            telemetry.update();
+        }
     }
 }
