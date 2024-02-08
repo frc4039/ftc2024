@@ -189,24 +189,24 @@ import java.util.List;
         waitForStart();
 
         encoderStrafe(DRIVE_SPEED, -30, 5);
-        if (encoderStrafe(SEARCH_SPEED, -12, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+        if (encoderStrafe(SEARCH_SPEED, -8, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             FindRedLineStrafe();
             objectFound = true;
             objectLocation = Location.Second;
             encoderStrafe(DRIVE_SPEED,-15,5);
-            encoderDrive(DRIVE_SPEED,4*24,10); //inv
+            encoderDrive(DRIVE_SPEED,3*24,10); //inv
 //            encoderStrafe(DRIVE_SPEED,24,5);
         }
 // Move back to center position
         if (!objectFound){
-            encoderStrafe(DRIVE_SPEED,12,5);
+            encoderStrafe(DRIVE_SPEED,8,5);
             if(encoderDrive(SEARCH_SPEED,-5,5)){
                 FindRedLineDrive();
                 objectFound = true;
                 objectLocation = Location.Third;
                 encoderStrafe(DRIVE_SPEED,-26,5);
-                encoderDrive(DRIVE_SPEED,4*24,10); //inv
+                encoderDrive(DRIVE_SPEED,3.5*24,10); //inv
 //                encoderStrafe(DRIVE_SPEED,24,5);
             }
         }
@@ -218,7 +218,7 @@ import java.util.List;
             objectLocation = Location.First;
             encoderDrive(DRIVE_SPEED, 10, 5); //inv
             encoderStrafe(DRIVE_SPEED, -26, 5);
-            encoderDrive(DRIVE_SPEED, 3 * 22, 5); //inv
+            encoderDrive(DRIVE_SPEED, 2.5*24, 5); //inv
 //            encoderStrafe(DRIVE_SPEED, 26, 5);
         }
 /*
@@ -405,7 +405,7 @@ import java.util.List;
         for (int i=0;(i<NPoints) && opModeIsActive();i++) {
             while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
 //             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
-            search[i] = color.blue();
+            search[i] = color.red();
         }
 
         frontLeft.setPower(0.0);
@@ -441,6 +441,10 @@ import java.util.List;
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
             telemetry.addData("Move Operation","Complete");
         }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
         //sleep(100);
         purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
         sleep(TIME_SLEPT_AFTER_DROP); //second sleep function to ensure that the pixel drops before moving again
