@@ -195,7 +195,7 @@ import java.util.List;
             objectFound = true;
             objectLocation = Location.Second;
             encoderStrafe(DRIVE_SPEED,-15,5);
-            encoderDrive(DRIVE_SPEED,3*24,10); //inv
+            encoderDrive(DRIVE_SPEED,3.2*24,10); //inv
 //            encoderStrafe(DRIVE_SPEED,24,5);
         }
 // Move back to center position
@@ -204,9 +204,9 @@ import java.util.List;
             if(encoderDrive(SEARCH_SPEED,-5,5)){
                 FindRedLineDrive();
                 objectFound = true;
-                objectLocation = Location.Third;
+                objectLocation = Location.First;
                 encoderStrafe(DRIVE_SPEED,-26,5);
-                encoderDrive(DRIVE_SPEED,3.5*24,10); //inv
+                encoderDrive(DRIVE_SPEED,3.7*24,10); //inv
 //                encoderStrafe(DRIVE_SPEED,24,5);
             }
         }
@@ -215,12 +215,18 @@ import java.util.List;
             encoderDrive(DRIVE_SPEED, 17, 5); //inv
             FindRedLineDrive();
             objectFound = true;
-            objectLocation = Location.First;
+            objectLocation = Location.Third;
             encoderDrive(DRIVE_SPEED, 10, 5); //inv
             encoderStrafe(DRIVE_SPEED, -26, 5);
             encoderDrive(DRIVE_SPEED, 2.5*24, 5); //inv
 //            encoderStrafe(DRIVE_SPEED, 26, 5);
         }
+
+        gripperLeft.setPosition(0.25);
+        gripperRight.setPosition(0.25);
+
+        encoderDrive(DRIVE_SPEED,-2,5);
+
 /*
         switch (objectLocation){
             case First:

@@ -195,7 +195,7 @@ import java.util.List;
             objectFound = true;
             objectLocation = Location.Second;
             encoderStrafe(DRIVE_SPEED,-15,5);
-            encoderDrive(DRIVE_SPEED,3*24,10); //inv
+            encoderDrive(DRIVE_SPEED,2.5*24,10); //inv
             encoderStrafe(DRIVE_SPEED,24,5);
         }
 // Move back to center position
