@@ -154,16 +154,16 @@ import java.util.List;
         }
         switch (objectLocation){
             case First:
-                TagTarget = 1;
+                TagTarget = 4;
                 break;
             case Second:
-                TagTarget = 2;
+                TagTarget = 5;
                 break;
             case Third:
-                TagTarget = 3;
+                TagTarget = 6;
                 break;
             default:
-                TagTarget = 2;
+                TagTarget = 4;
                 break;
         } //adjust based on what the actual tag targets are, for testing purposes we use 1 2 3
 
@@ -190,7 +190,7 @@ import java.util.List;
 
 
 
-        encoderStrafe(DRIVE_SPEED, (30 - (TagTarget - 1) * 4),5); //adjust this math for other tag values
+        encoderStrafe(DRIVE_SPEED, (30 - (TagTarget - 4) * 4),5); //adjust this math for other tag values
 
         encoderDrive(DRIVE_SPEED,5,5);
 

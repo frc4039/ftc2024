@@ -223,16 +223,16 @@ import java.util.List;
         }
         switch (objectLocation){
             case First:
-                TagTarget = 1;//  4;
+                TagTarget = 4;//  4;
                 break;
             case Second:
-                TagTarget = 2; //5;
+                TagTarget = 5; //5;
                 break;
             case Third:
-                TagTarget = 3; //6;
+                TagTarget = 6; //6;
                 break;
             default:
-                TagTarget = 2; //5;
+                TagTarget = 5; //5;
                 break;
         }
 

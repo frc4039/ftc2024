@@ -192,7 +192,7 @@ public class AutoBlueFrontDrop extends LinearOpMode {
         if (encoderStrafe(SEARCH_SPEED, 12, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
             FindBlueLineStrafe();
-//            objectFound = true;
+            objectFound = true;
 //            objectLocation = Location.Second;
 //            encoderStrafe(DRIVE_SPEED,15,5);
 //            encoderDrive(DRIVE_SPEED,3*24,10);
@@ -203,7 +203,7 @@ public class AutoBlueFrontDrop extends LinearOpMode {
             encoderStrafe(DRIVE_SPEED,-12,5);
             if(encoderDrive(SEARCH_SPEED,-5,5)){
                 FindBlueLineDrive();
-//                objectFound = true;
+                objectFound = true;
 //                objectLocation = Location.Third;
 //                encoderStrafe(DRIVE_SPEED,26,5);
 //                encoderDrive(DRIVE_SPEED,3*24,10);
@@ -214,7 +214,7 @@ public class AutoBlueFrontDrop extends LinearOpMode {
         if (!objectFound){
             encoderDrive(DRIVE_SPEED, 17, 5);
             FindBlueLineDrive();
-//            objectFound = true;
+            objectFound = true;
 //            objectLocation = Location.First;
 //            encoderDrive(DRIVE_SPEED, 10, 5);
 //            encoderStrafe(DRIVE_SPEED, 26, 5);

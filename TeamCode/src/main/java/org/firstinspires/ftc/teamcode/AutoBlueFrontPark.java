@@ -195,7 +195,7 @@ public class AutoBlueFrontPark extends LinearOpMode {
             objectFound = true;
             objectLocation = Location.Second;
             encoderStrafe(DRIVE_SPEED,15,5);
-            encoderDrive(DRIVE_SPEED,4*24,10);
+            encoderDrive(DRIVE_SPEED,3*24,10);
 //            encoderStrafe(DRIVE_SPEED,-24,5);
         }
 // Move back to center position
@@ -206,7 +206,7 @@ public class AutoBlueFrontPark extends LinearOpMode {
                 objectFound = true;
                 objectLocation = Location.Third;
                 encoderStrafe(DRIVE_SPEED,26,5);
-                encoderDrive(DRIVE_SPEED,4*24,10);
+                encoderDrive(DRIVE_SPEED,3.5*24,10);
 //                encoderStrafe(DRIVE_SPEED,-24,5);
             }
         }
@@ -218,7 +218,7 @@ public class AutoBlueFrontPark extends LinearOpMode {
             objectLocation = Location.First;
             encoderDrive(DRIVE_SPEED, 10, 5);
             encoderStrafe(DRIVE_SPEED, 26, 5);
-            encoderDrive(DRIVE_SPEED, 3*22, 5);
+            encoderDrive(DRIVE_SPEED, 2.5*24, 5);
 //            encoderStrafe(DRIVE_SPEED, -26, 5);
         }
 /*        switch (objectLocation){

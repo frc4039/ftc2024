@@ -258,10 +258,10 @@ public class AutoBlueFront extends LinearOpMode {
         encoderDrive(SEARCH_SPEED,-5,5);
 
 
+        encoderStrafe(DRIVE_SPEED,28 - (TagTarget-1)*4,5);
+//        encoderStrafe(DRIVE_SPEED,-1*(16 +(TagTarget -1)*4),5);
 
-        encoderStrafe(DRIVE_SPEED,-1*(16 +(TagTarget -1)*4),5);
-
-        encoderDrive(DRIVE_SPEED,5,5);
+//        encoderDrive(DRIVE_SPEED,5,5);
 
 
 //        telemetry.addData("Path", "Complete");
