@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "Sensor: REV touch sensor", group = "Sensor")
 
-public class SensorTouch extends OpMode {
+ public class SensorTouch extends OpMode {
 
     TouchSensor touchSensor;  // Touch sensor Object
 

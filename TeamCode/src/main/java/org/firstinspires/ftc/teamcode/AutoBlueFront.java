@@ -73,10 +73,10 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Blue Front", group="Robot",preselectTeleOp="2024 Teleop")
+@Autonomous(name="2024: Auto Blue Front", group="Robot", preselectTeleOp="2024 Teleop")
 public class AutoBlueFront extends LinearOpMode {
 
-    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
      * The variable to store our instance of the AprilTag processor.
@@ -212,6 +212,14 @@ public class AutoBlueFront extends LinearOpMode {
         }
         // Move back to center position
         if (!objectFound){
+            encoderDrive(DRIVE_SPEED, 17, 5);
+            FindBlueLineDrive();
+            objectFound = true;
+            objectLocation = Location.First;
+            encoderDrive(DRIVE_SPEED, 10, 5);
+            encoderStrafe(DRIVE_SPEED, 26, 5);
+            encoderDrive(DRIVE_SPEED, 2*22, 5);
+            encoderStrafe(DRIVE_SPEED, -26, 5);
         }
         switch (objectLocation){
             case First:
@@ -250,10 +258,10 @@ public class AutoBlueFront extends LinearOpMode {
         encoderDrive(SEARCH_SPEED,-5,5);
 
 
+        encoderStrafe(DRIVE_SPEED,28 - (TagTarget-1)*4,5);
+//        encoderStrafe(DRIVE_SPEED,-1*(16 +(TagTarget -1)*4),5);
 
-        encoderStrafe(DRIVE_SPEED,-1*(16 +(TagTarget -1)*4),5);
-
-        encoderDrive(DRIVE_SPEED,5,5);
+//        encoderDrive(DRIVE_SPEED,5,5);
 
 
 //        telemetry.addData("Path", "Complete");

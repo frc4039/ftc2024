@@ -31,8 +31,9 @@ public class Teleop24 extends OpMode {
     private int pivotTarget = -95;
     private int pivotClimbTarget = -190;
 
-
-    private final double maxSpeed = 0.625;
+    private double maxSpeedNormal = 0.625;
+    private double maxSPeedTurbo = 0.9;
+    private double maxSpeed = maxSpeedNormal;
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
     private final double elevatorPivotDownSpeed = 0.4;  //Because Gravity is helping use less power going down
     private final double elevatorPivotCrawlSpeed = 0.05;  //Slow speed so it doesn't crash
@@ -131,6 +132,12 @@ public class Teleop24 extends OpMode {
         double strafe = (gamepad1.left_stick_x);//inverted???
         double turn = (gamepad1.right_stick_x);//inverted???
 
+        if (gamepad1.right_bumper){
+            maxSpeed = maxSPeedTurbo;
+        } else {
+            maxSpeed = maxSpeedNormal;
+        }
+
         boolean pivotUp = (gamepad2.y);
         boolean pivotReset = (gamepad2.a);
         boolean pivotClimb = (gamepad2.x);
@@ -165,7 +172,7 @@ public class Teleop24 extends OpMode {
 
 
         // Allows for multiple functions to happen at once (eg. drive & strafe, turn & drive, etc)
-        double denominator = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1);
+         double denominator = Math.max(Math.abs(drive) + Math.abs(strafe) + Math.abs(turn), 1);
         frontLeft.setPower(maxSpeed*(drive - strafe + turn)/denominator);
         frontRight.setPower(maxSpeed*(drive - strafe - turn)/denominator);
         rearLeft.setPower(maxSpeed*(drive + strafe + turn)/denominator);

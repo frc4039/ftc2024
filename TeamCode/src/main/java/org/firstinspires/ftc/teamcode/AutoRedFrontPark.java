@@ -30,20 +30,19 @@
 package org.firstinspires.ftc.teamcode;
 
 
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 import java.util.List;
 
 
@@ -74,10 +73,10 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="2024: Auto Blue Back", group="Robot", preselectTeleOp="2024 Teleop")
-public class AutoBlueBack extends LinearOpMode {
+@Autonomous(name="2024: Auto Red Front Park", group="Robot", preselectTeleOp="2024 Teleop")
+ public class AutoRedFrontPark extends LinearOpMode {
 
-     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
      * The variable to store our instance of the AprilTag processor.
@@ -131,7 +130,7 @@ public class AutoBlueBack extends LinearOpMode {
     private final double DISTANCE_TO_BACKDROP = 30.0;
 
     private long TIME_SLEPT_AFTER_DROP = 50; //changes how long the robot sleeps for after dropping the purple pixel
-            //important because we don't want the robot to start moving too early
+    //important because we don't want the robot to start moving too early
 
     @Override
     public void runOpMode() {
@@ -188,67 +187,53 @@ public class AutoBlueBack extends LinearOpMode {
         initAprilTag();
 
         waitForStart();
-/*
-        while(opModeIsActive()) {
-            telemetry.addData("LeftBeam", LeftBeam.isPressed());
-            telemetry.addData("RightBeam", RightBeam.isPressed());
-            telemetry.addData("RearBeam", RearBeam .isPressed());
-            telemetry.update();
-        }
-        stop();
-*/
-        // Old code in circular brackets from first if: encoderStrafe(SEARCH_SPEED, 6.0,5)
 
-//            MoveToAprilTag(2);
-//            stop();
-
-        encoderStrafe(DRIVE_SPEED, 1, 5);
-            encoderDrive(DRIVE_SPEED, 7.5, 5);
-              // Move to right tile  - 8 inch 1 1/2 tiles - 1/2 robot width
-        if (encoderStrafe(SEARCH_SPEED, DISTANCE_TO_CENTER+4, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
+        encoderStrafe(DRIVE_SPEED, -30, 5);
+        if (encoderStrafe(SEARCH_SPEED, -8, 5)){  // move robot to center on back line ready to drop purple pixel.  encoderStrafe will return true if object is encountered.
 //            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
-            FindBlueLineDrive();
+            FindRedLineStrafe();
             objectFound = true;
-            objectLocation = Location.First;
-            encoderDrive(DRIVE_SPEED,5,5);
+            objectLocation = Location.Second;
+            encoderStrafe(DRIVE_SPEED,-15,5);
+            encoderDrive(DRIVE_SPEED,3*24,10); //inv
+//            encoderStrafe(DRIVE_SPEED,24,5);
         }
 // Move back to center position
         if (!objectFound){
-            encoderStrafe(DRIVE_SPEED, 9, 5);
-            sleep(250);
-            if(encoderDrive(SEARCH_SPEED,-8,5)){  // object found in position 2 // inches is formerly -12
-                FindBlueLineStrafe();
-//                purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
+            encoderStrafe(DRIVE_SPEED,8,5);
+            if(encoderDrive(SEARCH_SPEED,-5,5)){
+                FindRedLineDrive();
                 objectFound = true;
-                objectLocation = Location.Second;
-                telemetry.addData("Detected","Second Position");
-                encoderStrafe(DRIVE_SPEED, -9, 5);
-                encoderDrive(DRIVE_SPEED, 14, 5);
+                objectLocation = Location.Third;
+                encoderStrafe(DRIVE_SPEED,-26,5);
+                encoderDrive(DRIVE_SPEED,3.5*24,10); //inv
+//                encoderStrafe(DRIVE_SPEED,24,5);
             }
- // Move back to center position
         }
-        if (!objectFound){
-            encoderStrafe(DRIVE_SPEED,-10.5,5);
-//            sleep(500);ii
-
-            encoderDrive(SEARCH_SPEED,-12.5,5);
-//            purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);
-            FindBlueLineDrive();
-            objectLocation = Location.Third;
-            encoderDrive(DRIVE_SPEED,24,5);
+        // Move back to center position
+        if (!objectFound) {
+            encoderDrive(DRIVE_SPEED, 17, 5); //inv
+            FindRedLineDrive();
+            objectFound = true;
+            objectLocation = Location.First;
+            encoderDrive(DRIVE_SPEED, 10, 5); //inv
+            encoderStrafe(DRIVE_SPEED, -26, 5);
+            encoderDrive(DRIVE_SPEED, 2.5*24, 5); //inv
+//            encoderStrafe(DRIVE_SPEED, 26, 5);
         }
+/*
         switch (objectLocation){
             case First:
-                TagTarget = 1;
+                TagTarget = 1;//  4;
                 break;
             case Second:
-                TagTarget = 2;
+                TagTarget = 2; //5;
                 break;
             case Third:
-                TagTarget = 3;
+                TagTarget = 3; //6;
                 break;
             default:
-                TagTarget = 2;
+                TagTarget = 2; //5;
                 break;
         }
 
@@ -282,6 +267,8 @@ public class AutoBlueBack extends LinearOpMode {
 
 //        telemetry.addData("Path", "Complete");
 //        telemetry.update();
+
+ */
         sleep(1000);  // pause to display final telemetry message.
     }
 
@@ -344,11 +331,11 @@ public class AutoBlueBack extends LinearOpMode {
                     strafe = 0.0;
 
                     switch (detection.id) {
-                        case 1: // 4 for red
+                        case 4:
                             break;
-                        case 2:  // 5 for red
+                        case 5:
                             break;
-                        case 3:  //6 for red
+                        case 6:
                             break;
                     }
                 }
@@ -369,7 +356,7 @@ public class AutoBlueBack extends LinearOpMode {
         }
         return true;
     }
-    public void FindBlueLineStrafe (){
+    public void FindRedLineStrafe (){
 
         final int interval = 5;
         final int NPoints = 100;
@@ -418,7 +405,7 @@ public class AutoBlueBack extends LinearOpMode {
         for (int i=0;(i<NPoints) && opModeIsActive();i++) {
             while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
 //             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
-            search[i] = color.blue();
+            search[i] = color.red();
         }
 
         frontLeft.setPower(0.0);
@@ -426,11 +413,11 @@ public class AutoBlueBack extends LinearOpMode {
         rearLeft.setPower(0.0);
         rearRight.setPower(0.0);
 
-        int maxblue = 0;
+        int maxred = 0;
         int maxloc = 0;
         for (int i = 0; i< 100; i++){
-            if( search[i] > maxblue){
-                maxblue = search[i];
+            if( search[i] > maxred){
+                maxred = search[i];
                 maxloc = i*interval;
             }
         }
@@ -454,6 +441,10 @@ public class AutoBlueBack extends LinearOpMode {
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
             telemetry.addData("Move Operation","Complete");
         }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        rearLeft.setPower(0);
+        rearRight.setPower(0);
         //sleep(100);
         purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
         sleep(TIME_SLEPT_AFTER_DROP); //second sleep function to ensure that the pixel drops before moving again
@@ -479,7 +470,7 @@ public class AutoBlueBack extends LinearOpMode {
 
     }
 
-    public void FindBlueLineDrive (){
+    public void FindRedLineDrive (){
 
         final int interval = 5;
         final int NPoints = 100;
@@ -507,8 +498,8 @@ public class AutoBlueBack extends LinearOpMode {
         rearRight.setPower(RunPower);
 
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
-                telemetry.addData("Move Operation","Complete");
-            }
+            telemetry.addData("Move Operation","Complete");
+        }
 
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -528,7 +519,7 @@ public class AutoBlueBack extends LinearOpMode {
         for (int i=0;(i<NPoints) && opModeIsActive();i++) {
             while (((CurrPos = frontLeft.getCurrentPosition()) < i*interval)  && opModeIsActive());
 //             RobotLog.d("Color: "+ Integer.toString(CurrPos) +","+ Integer.toString(redsearch[i] = color.red())+","+Integer.toString(color.green())+","+Integer.toString(color.blue())+","+Integer.toString(color.alpha()));
-            search[i] = color.blue();
+            search[i] = color.red();
         }
 
         frontLeft.setPower(0.0);
@@ -536,11 +527,11 @@ public class AutoBlueBack extends LinearOpMode {
         rearLeft.setPower(0.0);
         rearRight.setPower(0.0);
 
-        int maxblue = 0;
+        int maxred = 0;
         int maxloc = 0;
         for (int i = 0; i< 100; i++){
-            if( search[i] > maxblue){
-                maxblue = search[i];
+            if( search[i] > maxred){
+                maxred = search[i];
                 maxloc = i*interval;
             }
         }
@@ -567,7 +558,7 @@ public class AutoBlueBack extends LinearOpMode {
         //sleep(100);
         purplePixelGripper.setPosition(CENTER_GRIPPER_OPEN);  //  WORK Need to confirm proper operation of this servo and what direction is needed to drop the pixel.
         sleep(TIME_SLEPT_AFTER_DROP);
-
+/*
         frontLeft.setTargetPosition(interval*NPoints);
         frontRight.setTargetPosition(interval*NPoints);
         rearRight.setTargetPosition(interval*NPoints);
@@ -576,6 +567,7 @@ public class AutoBlueBack extends LinearOpMode {
         while (opModeIsActive() && (frontLeft.isBusy() || frontRight.isBusy()) || rearLeft.isBusy() || rearLeft.isBusy()) {
             telemetry.addData("Move Operation","Complete");
         }
+        */
         frontLeft.setPower(0);
         frontRight.setPower(0);
         rearLeft.setPower(0);
@@ -588,8 +580,8 @@ public class AutoBlueBack extends LinearOpMode {
 
     }
     public boolean encoderStrafe(double speed,
-                              double inches,
-                              double timeoutS){
+                                 double inches,
+                                 double timeoutS){
         // Return value is True if item is found and false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
@@ -652,8 +644,8 @@ public class AutoBlueBack extends LinearOpMode {
     }
 
     public boolean encoderDrive(double speed,
-                             double inches,
-                             double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
+                                double inches,
+                                double timeoutS) {   // function returns true if one of the beams encounters an object during a move false if not.
         int newFrontLeftTarget;
         int newFrontRightTarget;
         int newRearLeftTarget;
@@ -727,7 +719,7 @@ public class AutoBlueBack extends LinearOpMode {
 
 //            sleep(250);   // optional pause after each move.  This can be handeled in the main code if needed.
         }
-    return objectFlag;
+        return objectFlag;
     }
     private void initAprilTag() {
 

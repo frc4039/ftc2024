@@ -107,7 +107,7 @@ public class TestBeams extends LinearOpMode {
     private final double elevatorPivotUpSpeed = 1;  // Full power to lift
 
     @Override
-    public void runOpMode() {
+     public void runOpMode() {
         RightBeam =  hardwareMap.get(TouchSensor.class, "Right");
         LeftBeam = hardwareMap.get(TouchSensor.class,"Left");
         RearBeam = hardwareMap.get(TouchSensor.class, "Rear");
