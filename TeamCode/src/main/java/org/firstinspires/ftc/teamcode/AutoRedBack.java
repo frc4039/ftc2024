@@ -172,6 +172,8 @@ import java.util.List;
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+        sleep(500);
+
         MoveToAprilTag(TagTarget);
 
         encoderDrive(SEARCH_SPEED,2,5);
