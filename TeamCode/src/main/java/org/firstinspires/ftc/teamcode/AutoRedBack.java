@@ -138,7 +138,7 @@ import java.util.List;
                 objectLocation = Location.Second;
                 telemetry.addData("Detected","Second Position");
                 encoderStrafe(DRIVE_SPEED, 9, 5);
-                encoderDrive(DRIVE_SPEED, 14, 5);
+                encoderDrive(DRIVE_SPEED, 18, 5);
             }
             // Move back to center position
         }
@@ -225,6 +225,8 @@ import java.util.List;
             strafe = 0.0;
 
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+            telemetry.addLine(String.valueOf(currentDetections.size()));
 
             if (currentDetections.size() > 0) {
 

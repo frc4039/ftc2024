@@ -307,6 +307,8 @@ public class AutoBlueFront extends LinearOpMode {
 
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
+            telemetry.addLine(String.valueOf(currentDetections.size()));
+
             if (currentDetections.size() > 0) {
 
                 for (AprilTagDetection detection : currentDetections) {

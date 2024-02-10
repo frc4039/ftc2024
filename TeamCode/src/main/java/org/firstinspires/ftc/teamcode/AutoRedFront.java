@@ -307,6 +307,8 @@ import java.util.List;
 
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
+            telemetry.addLine(String.valueOf(currentDetections.size()));
+
             if (currentDetections.size() > 0) {
 
                 for (AprilTagDetection detection : currentDetections) {
@@ -357,6 +359,7 @@ import java.util.List;
                 rearRight.setPower(0.0);
                 notInPosition = false;
             }
+
             sleep(10);
         }
         return true;
