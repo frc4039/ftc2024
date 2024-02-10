@@ -294,15 +294,20 @@ public class AutoBlueFront extends LinearOpMode {
         rearLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rearRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        runtime.reset();
         while (notInPosition && opModeIsActive()) {
 
             boolean TargetTagFound = false;
             boolean TagFound = false;
 
+            drive = 0.0;
+            strafe = 0.0;
+
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.id == TagLocation) {
+                    runtime.reset();
                     TagFound = true;
                     TargetTagFound = true;
                     telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
@@ -342,7 +347,7 @@ public class AutoBlueFront extends LinearOpMode {
             rearLeft.setPower(maxSpeed*(drive + strafe ));
             rearRight.setPower(maxSpeed*(drive + strafe ));
 
-            if (currentRange < targetrange){
+            if ((currentRange < targetrange)||(runtime.seconds()>3.0)){
                 frontLeft.setPower(0.0);
                 frontRight.setPower(0.0);
                 rearLeft.setPower(0.0);
