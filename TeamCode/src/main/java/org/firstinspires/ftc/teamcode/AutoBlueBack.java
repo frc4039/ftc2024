@@ -257,7 +257,7 @@ public class AutoBlueBack extends LinearOpMode {
         elevatorPivot.setTargetPosition(pivotTarget);
         elevatorPivot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        sleep(500);
+        //sleep(500);
 
         MoveToAprilTag(TagTarget);
 
@@ -324,43 +324,44 @@ public class AutoBlueBack extends LinearOpMode {
 
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
-            for (AprilTagDetection detection : currentDetections) {
-                if (detection.id == TagLocation) {
-                    runtime.reset();
-                    TagFound = true;
-                    TargetTagFound = true;
-                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                    telemetry.addLine(String.format("\n==== %f range %f bearing",detection.ftcPose.range,detection.ftcPose.bearing));
-                    telemetry.update();
-                    if (Math.abs(detection.ftcPose.bearing) > 5){
-                        strafe = -1.0 * Math.signum(detection.ftcPose.bearing);
-                        drive = 0.0;
-                    }
-                    else {
-                        drive = 1.0;
-                        strafe = 0.0;
-                    }
-                    currentRange = detection.ftcPose.range;
+            if (currentDetections.size() > 0) {
+
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.id == TagLocation) {
+                        runtime.reset();
+                        TagFound = true;
+                        TargetTagFound = true;
+                        telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                        telemetry.addLine(String.format("\n==== %f range %f bearing", detection.ftcPose.range, detection.ftcPose.bearing));
+                        telemetry.update();
+                        if (Math.abs(detection.ftcPose.bearing) > 5) {
+                            strafe = -1.0 * Math.signum(detection.ftcPose.bearing);
+                            drive = 0.0;
+                        } else {
+                            drive = 1.0;
+                            strafe = 0.0;
+                        }
+                        currentRange = detection.ftcPose.range;
 /*
                     drive = Math.cos(detection.ftcPose.bearing / 180 * 3.1415);
                     strafe = -1 * Math.sin(detection.ftcPose.bearing / 180 *3.1415);
 
  */
-                }
-                else if (TargetTagFound == false) {
-                    drive = 0.0;
-                    strafe = 0.0;
+                    } else if (TargetTagFound == false) {
+                        drive = 0.0;
+                        strafe = 0.0;
 
-                    switch (detection.id) {
-                        case 1: // 4 for red
-                            break;
-                        case 2:  // 5 for red
-                            break;
-                        case 3:  //6 for red
-                            break;
+                        switch (detection.id) {
+                            case 1: // 4 for red
+                                break;
+                            case 2:  // 5 for red
+                                break;
+                            case 3:  //6 for red
+                                break;
+                        }
                     }
-                }
-            }   // end for() loop
+                }   // end for() loop
+            }
             frontLeft.setPower(maxSpeed*(drive - strafe ));
             frontRight.setPower(maxSpeed*(drive - strafe ));
             rearLeft.setPower(maxSpeed*(drive + strafe ));
